@@ -79,6 +79,28 @@
   .quizhdr-title{font-weight:800; font-size:16px;}
   .quizhdr-sub{font-size:12px; opacity:.9; margin-top:3px;}
   .qback{background:rgba(255,255,255,.18); color:#fff; border:0; border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700; cursor:pointer; float:right; margin-left:8px;}
+  /* lesson images */
+  .hdrimg{width:100%; height:130px; object-fit:cover; border-radius:12px; box-shadow:var(--shadow); display:block; margin-bottom:8px; background:#dde6ee;}
+  .timg{width:100%; height:80px; object-fit:cover; border-radius:10px; margin-bottom:8px; background:#dde6ee; display:block;}
+  .lthumb{width:42px; height:42px; object-fit:cover; border-radius:8px; vertical-align:middle; margin-right:9px; background:#dde6ee;}
+  /* matching game */
+  .matchgrid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;}
+  .mcol-h{font-size:11px; font-weight:800; letter-spacing:.5px; color:var(--teal); text-transform:uppercase; margin:4px 0 4px;}
+  .mcell{background:#fff; border:2px solid #dfe6ee; border-radius:10px; padding:9px 10px; font-size:12.5px; line-height:1.35; cursor:pointer; min-height:62px; display:flex; align-items:center; color:var(--ink);}
+  .mcell.sel{border-color:var(--teal); background:#e8fbff;}
+  .mcell.done{background:#eafbf1; border-color:var(--good); color:#1f6b43; cursor:default;}
+  .mcell.bad{border-color:var(--bad); background:#fdeeee; animation:shake .4s;}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  /* diagrams */
+  table.cmp{width:100%; border-collapse:collapse; font-size:12px; margin:6px 0;}
+  table.cmp th, table.cmp td{border:1px solid #d7e0ea; padding:7px 8px; text-align:left; vertical-align:top;}
+  table.cmp th{background:var(--navy); color:#fff; font-weight:700;}
+  table.cmp td:first-child{font-weight:700; color:var(--navy); background:#eef3f8;}
+  .chart{display:flex; align-items:flex-end; gap:10px; height:150px; padding:8px 4px 0; border-bottom:2px solid #cdd8e3; margin-top:8px;}
+  .chart .col{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;}
+  .chart .colbar{width:72%; background:var(--teal); border-radius:6px 6px 0 0; min-height:3px;}
+  .chart .colval{font-size:12px; font-weight:800; color:var(--navy); margin-bottom:3px;}
+  .collbl{font-size:10px; color:#5b6b7c; margin-top:6px; text-align:center; line-height:1.2;}
   /* essays */
   details{background:#fff; border-radius:12px; box-shadow:var(--shadow); margin:10px 0; overflow:hidden;}
   details>summary{padding:14px 16px; font-weight:700; color:var(--navy); cursor:pointer; list-style:none;}
@@ -2163,7 +2185,8 @@ function showCard(){
   const pct=Math.round(qi/queue.length*100);
   stage.innerHTML =
    '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
-   '<div class="muted" style="text-align:center;margin-bottom:6px">'+(qi+1)+" / "+queue.length+" · "+c.lessonTitle+'</div>'+
+   imgTag(c.lesson,'hdrimg')+
+   '<div class="muted" style="text-align:center;margin-bottom:6px">'+(qi+1)+" / "+queue.length+" · "+lessonLabel(c.lesson)+" — "+c.lessonTitle+'</div>'+
    '<div class="card fc" onclick="flip()"><div class="side">'+
      '<span class="lbl">'+(flipped?"ANSWER":"PROMPT — answer first, then tap")+'</span>'+
      (flipped? c.b : c.f)+'</div></div>'+
@@ -2193,20 +2216,33 @@ function rate(q){
 }
 
 /* ---- quizzes ---- */
-let quiz=[], quizIx=0, quizScore=0, answered=false, quizName="", quizKind="";
+let quiz=[], quizIx=0, quizScore=0, answered=false, quizName="", quizKind="", quizMode="mc", mg={};
 function lessonLabel(id){
   if(id==="C26") return "Chapter 26";
   if(id==="L24") return "Lesson 24.1";
   return "Lesson "+id.slice(1);
 }
+function lessonImg(id){ return "img/"+id+".png"; }
+function imgTag(id, cls){ return '<img class="'+cls+'" src="'+lessonImg(id)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">'; }
+function trunc(s,n){ s=String(s); return s.length>n ? s.slice(0,n-1).trim()+"…" : s; }
 function renderQuizPick(){
   $("#quizStage").innerHTML="";
   const counts={}; MCQ.forEach(m=>counts[m.l]=(counts[m.l]||0)+1);
-  let html='<p class="muted">Pick a quiz. You will always see which lesson you are working on. After each question you get the answer + why.</p>';
-  html+='<button class="btn block" onclick="startQuiz(\'FINAL\')">🎯 Mock Final — '+Math.min(66,MCQ.length)+' mixed questions (like the real test)</button>';
-  html+='<h3>Quizzes by lesson / chapter</h3>';
+  let html='<div class="topbtns"><button class="chip'+(quizMode==="mc"?" on":"")+'" onclick="setQuizMode(\'mc\')">📝 Multiple choice</button>'+
+           '<button class="chip'+(quizMode==="match"?" on":"")+'" onclick="setQuizMode(\'match\')">🔗 Matching game</button></div>';
+  if(quizMode==="mc"){
+    html+='<p class="muted">Pick a quiz — you always see which lesson you are on. The Mock Final mixes everything, like the real test.</p>';
+    html+='<button class="btn block" onclick="startQuiz(\'FINAL\')">🎯 Mock Final — '+Math.min(66,MCQ.length)+' mixed questions</button>';
+  } else {
+    html+='<p class="muted">Matching practices the final\'s matching section: tap a term, then its meaning. Pick a lesson below.</p>';
+  }
+  html+='<h3>'+(quizMode==="mc"?"Quizzes":"Matching")+' by lesson / chapter</h3>';
   html+='<div class="grid">';
-  LESSONS.forEach(L=>{ if(counts[L.id]) html+='<div class="tile" onclick="startQuiz(\''+L.id+'\')"><span class="pill alt">'+lessonLabel(L.id)+'</span><div class="t" style="margin-top:8px">'+L.title+'</div><div class="s">'+counts[L.id]+' questions</div></div>'; });
+  LESSONS.forEach(L=>{ if(counts[L.id]){
+    const action = quizMode==="mc" ? "startQuiz(\'"+L.id+"\')" : "startMatch(\'"+L.id+"\')";
+    const sub = quizMode==="mc" ? counts[L.id]+" questions" : "tap term → meaning";
+    html+='<div class="tile" onclick="'+action+'">'+imgTag(L.id,'timg')+'<span class="pill alt">'+lessonLabel(L.id)+'</span><div class="t" style="margin-top:8px">'+L.title+'</div><div class="s">'+sub+'</div></div>';
+  }});
   html+='</div>';
   $("#quizPick").innerHTML=html;
 }
@@ -2235,7 +2271,7 @@ function showQuiz(){
     return;
   }
   const it=quiz[quizIx];
-  let html='<div class="quizhdr"><button class="qback" onclick="backToQuizPick()">‹ All quizzes</button>'+
+  let html=(quizKind==="FINAL"?'':imgTag(quizKind,'hdrimg'))+'<div class="quizhdr"><button class="qback" onclick="backToQuizPick()">‹ All quizzes</button>'+
     '<div class="quizhdr-title">'+quizName+'</div>'+
     '<div class="quizhdr-sub">Question '+(quizIx+1)+' of '+quiz.length+' · Score '+quizScore+'</div></div>';
   html+='<div class="card"><p style="font-weight:600;font-size:16px">'+it.q+'</p><div id="choices">';
@@ -2255,6 +2291,79 @@ function answer(i){
 }
 function nextQ(){ quizIx++; answered=false; showQuiz(); }
 function backToQuizPick(){ $("#quizPick").style.display=""; $("#quizStage").innerHTML=""; renderQuizPick(); }
+function setQuizMode(m){ quizMode=m; renderQuizPick(); }
+
+/* ---- matching game (practices the final's matching section) ---- */
+function startMatch(lessonId){
+  const cards = ALLCARDS.filter(c=>c.lesson===lessonId);
+  const pick = shuffle(cards).slice(0, Math.min(5, cards.length));
+  mg = {pairs:pick, sel:null, matched:0, lessonId:lessonId, tries:0,
+        left: shuffle(pick.map((c,i)=>({key:i, txt:trunc(c.f.replace(/^Define:\s*/i,''),60)}))),
+        right: shuffle(pick.map((c,i)=>({key:i, txt:trunc(c.b,95)})))};
+  $("#quizPick").style.display="none"; renderMatch();
+}
+function mcellHtml(side,i,item){
+  const cls='mcell'+(item.done?' done':'')+((mg.sel&&mg.sel.side===side&&mg.sel.i===i)?' sel':'');
+  return '<div class="'+cls+'" id="m'+side+i+'" onclick="matchPick(\''+side+'\','+i+')">'+item.txt+'</div>';
+}
+function renderMatch(){
+  const st=$("#quizStage");
+  if(mg.matched>=mg.pairs.length){
+    st.innerHTML='<div class="card" style="text-align:center"><div class="muted">Matching complete</div>'+
+      '<h2 style="margin:4px 0">'+lessonLabel(mg.lessonId)+'</h2><div class="big">'+mg.pairs.length+'/'+mg.pairs.length+'</div>'+
+      '<p class="muted">All matched in '+mg.tries+' tries.</p>'+
+      '<button class="btn block" onclick="startMatch(\''+mg.lessonId+'\')">🔁 New round</button>'+
+      '<button class="btn sec block" onclick="backToQuizPick()">‹ All sets</button></div>';
+    return;
+  }
+  let html=imgTag(mg.lessonId,'hdrimg')+
+    '<div class="quizhdr"><button class="qback" onclick="backToQuizPick()">‹ All sets</button>'+
+    '<div class="quizhdr-title">🔗 '+lessonLabel(mg.lessonId)+' — Matching</div>'+
+    '<div class="quizhdr-sub">Tap a term, then its meaning · '+mg.matched+'/'+mg.pairs.length+' matched</div></div>';
+  html+='<div class="matchgrid"><div><div class="mcol-h">Term / prompt</div>';
+  mg.left.forEach((l,i)=> html+=mcellHtml('L',i,l));
+  html+='</div><div><div class="mcol-h">Meaning</div>';
+  mg.right.forEach((r,i)=> html+=mcellHtml('R',i,r));
+  html+='</div></div>';
+  st.innerHTML=html;
+}
+function matchPick(side,i){
+  const arr = side==='L'? mg.left : mg.right;
+  const item = arr[i];
+  if(!item || item.done) return;
+  if(!mg.sel || mg.sel.side===side){ mg.sel={side:side,i:i,key:item.key}; renderMatch(); return; }
+  mg.tries++;
+  const other=mg.sel;
+  if(other.key===item.key){
+    mg.left.forEach(x=>{ if(x.key===item.key)x.done=true; });
+    mg.right.forEach(x=>{ if(x.key===item.key)x.done=true; });
+    mg.matched++; mg.sel=null; renderMatch();
+  } else {
+    mg.sel=null; renderMatch();
+    const a=document.getElementById('m'+side+i), b=document.getElementById('m'+other.side+other.i);
+    if(a)a.classList.add('bad'); if(b)b.classList.add('bad');
+    setTimeout(function(){ if(a)a.classList.remove('bad'); if(b)b.classList.remove('bad'); },450);
+  }
+}
+
+/* ---- visual study aids (accurate, built in code — not AI) ---- */
+function diagramsHtml(){
+  let h='<details><summary>📊 Visual study aids — charts &amp; comparisons</summary><div class="body">';
+  h+='<h3 style="margin-top:4px">Comparing the three revolutions</h3>';
+  h+='<table class="cmp"><tr><th></th><th>American</th><th>French</th><th>Latin American</th></tr>'+
+     '<tr><td>Main cause</td><td>Taxes without representation; Enlightenment ideas</td><td>Inequality of the 3 Estates, debt &amp; famine; Enlightenment ideas</td><td>Creole resentment of peninsulares; inspired by the U.S. &amp; France</td></tr>'+
+     '<tr><td>How it went</td><td>War of independence against Britain</td><td>Estates-General → Rights of Man → Reign of Terror → Napoleon</td><td>Wars of independence (Bolívar, San Martín); Haiti = slave revolt</td></tr>'+
+     '<tr><td>Result</td><td>Stable republic + Constitution; became a model</td><td>End of absolute monarchy, but Terror then Napoleon; Napoleonic Code</td><td>Independence from Spain, but lasting inequality &amp; instability</td></tr>'+
+     '<tr><td>Shared</td><td colspan="3">All three were driven by Enlightenment ideas — natural rights and government by consent of the people.</td></tr>'+
+     '</table>';
+  h+='<h3>Spread of voting rights in Britain (Ch. 26)</h3>';
+  const bars=[['Before 1832',5,'~5% could vote'],['1832 Reform Bill',7,'middle-class men'],['1867 &amp; 1884',28,'working &amp; rural men'],['1918',74,'women 30+ added']];
+  h+='<div class="chart">'+bars.map(b=>'<div class="col"><div class="colval">'+b[1]+'%</div><div class="colbar" style="height:'+b[1]+'%"></div></div>').join('')+'</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">'+bars.map(b=>'<div class="collbl"><b>'+b[0]+'</b><br>'+b[2]+'</div>').join('')+'</div>';
+  h+='<p class="muted" style="font-size:12px;margin-top:8px">% of British adults who could vote — Britain became a democracy gradually through reform laws, not a revolution.</p>';
+  h+='</div></details>';
+  return h;
+}
 
 /* ---- essays ---- */
 function renderEssayHome(){
@@ -2308,10 +2417,11 @@ function loadDraft(id){ const ta=$("#essayDraft"); const v=store.get("draft_"+id
 function renderRef(){
   const term=($("#refSearch").value||"").toLowerCase();
   let html="";
+  if(!term) html+=diagramsHtml();
   LESSONS.forEach(L=>{
     const cards=L.cards.filter(c=> !term || (c.f+" "+c.b).toLowerCase().includes(term));
     if(!cards.length) return;
-    html+='<details'+(term?" open":"")+'><summary>'+L.title+' <span class="muted">· '+L.tag+'</span></summary><div class="body">';
+    html+='<details'+(term?" open":"")+'><summary>'+imgTag(L.id,'lthumb')+lessonLabel(L.id)+' — '+L.title+' <span class="muted">· '+L.tag+'</span></summary><div class="body">';
     html+='<p class="muted">'+L.blurb+'</p>';
     cards.forEach(c=> html+='<div class="kv"><b>'+c.f.replace(/\?$/,"")+'</b><br>'+c.b+'</div><hr>');
     html+='</div></details>';
