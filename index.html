@@ -75,6 +75,10 @@
   .choice.dim{opacity:.6;}
   .explain{background:#f2f7fb; border-left:4px solid var(--teal); padding:10px 12px; border-radius:8px; margin-top:10px; font-size:14px;}
   .qmeta{display:flex; justify-content:space-between; font-size:12px; color:#5b6b7c; margin-bottom:6px;}
+  .quizhdr{background:var(--navy); color:#fff; border-radius:12px; padding:12px 14px; margin-bottom:10px; box-shadow:var(--shadow); overflow:hidden;}
+  .quizhdr-title{font-weight:800; font-size:16px;}
+  .quizhdr-sub{font-size:12px; opacity:.9; margin-top:3px;}
+  .qback{background:rgba(255,255,255,.18); color:#fff; border:0; border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700; cursor:pointer; float:right; margin-left:8px;}
   /* essays */
   details{background:#fff; border-radius:12px; box-shadow:var(--shadow); margin:10px 0; overflow:hidden;}
   details>summary{padding:14px 16px; font-weight:700; color:var(--navy); cursor:pointer; list-style:none;}
@@ -2189,25 +2193,32 @@ function rate(q){
 }
 
 /* ---- quizzes ---- */
-let quiz=[], quizIx=0, quizScore=0, answered=false, quizName="";
+let quiz=[], quizIx=0, quizScore=0, answered=false, quizName="", quizKind="";
+function lessonLabel(id){
+  if(id==="C26") return "Chapter 26";
+  if(id==="L24") return "Lesson 24.1";
+  return "Lesson "+id.slice(1);
+}
 function renderQuizPick(){
   $("#quizStage").innerHTML="";
   const counts={}; MCQ.forEach(m=>counts[m.l]=(counts[m.l]||0)+1);
-  let html='<p class="muted">Pick a set. After each question you get the answer + why. The mock final mixes everything, like the real test.</p>';
-  html+='<button class="btn block" onclick="startQuiz(\'FINAL\')">🎯 Mock Final — 66 mixed questions</button>';
+  let html='<p class="muted">Pick a quiz. You will always see which lesson you are working on. After each question you get the answer + why.</p>';
+  html+='<button class="btn block" onclick="startQuiz(\'FINAL\')">🎯 Mock Final — '+Math.min(66,MCQ.length)+' mixed questions (like the real test)</button>';
+  html+='<h3>Quizzes by lesson / chapter</h3>';
   html+='<div class="grid">';
-  LESSONS.forEach(L=>{ if(counts[L.id]) html+='<div class="tile" onclick="startQuiz(\''+L.id+'\')"><div class="t">'+L.title+'</div><div class="s">'+counts[L.id]+' questions</div></div>'; });
+  LESSONS.forEach(L=>{ if(counts[L.id]) html+='<div class="tile" onclick="startQuiz(\''+L.id+'\')"><span class="pill alt">'+lessonLabel(L.id)+'</span><div class="t" style="margin-top:8px">'+L.title+'</div><div class="s">'+counts[L.id]+' questions</div></div>'; });
   html+='</div>';
   $("#quizPick").innerHTML=html;
 }
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function startQuiz(which){
-  if(which==="FINAL"){ quiz=shuffle(MCQ).slice(0,Math.min(66,MCQ.length)); quizName="Mock Final"; }
-  else{ quiz=shuffle(MCQ.filter(m=>m.l===which)); quizName=(LESSONS.find(L=>L.id===which)||{}).title||which; }
-  // shuffle choices per question, track correct index
+  quizKind=which;
+  if(which==="FINAL"){ quiz=shuffle(MCQ).slice(0,Math.min(66,MCQ.length)); quizName="🎯 Mock Final — all lessons"; }
+  else{ quiz=shuffle(MCQ.filter(m=>m.l===which)); quizName=lessonLabel(which)+" — "+((LESSONS.find(L=>L.id===which)||{}).title||which); }
+  // shuffle choices per question, track correct index (keep source lesson id)
   quiz=quiz.map(m=>{
     const order=shuffle(m.c.map((_,i)=>i));
-    return {q:m.q, choices:order.map(i=>m.c[i]), a:order.indexOf(m.a), why:m.why};
+    return {l:m.l, q:m.q, choices:order.map(i=>m.c[i]), a:order.indexOf(m.a), why:m.why};
   });
   quizIx=0; quizScore=0; answered=false;
   $("#quizPick").style.display="none"; showQuiz();
@@ -2217,14 +2228,16 @@ function showQuiz(){
   if(quizIx>=quiz.length){
     const pct=Math.round(quizScore/quiz.length*100);
     const qh=store.get("quiz",{seen:0,correct:0}); qh.seen+=quiz.length; qh.correct+=quizScore; store.set("quiz",qh);
-    st.innerHTML='<div class="card" style="text-align:center"><h2>'+quizName+' done</h2>'+
+    st.innerHTML='<div class="card" style="text-align:center"><div class="muted">Quiz complete</div><h2 style="margin:4px 0">'+quizName+'</h2>'+
       '<div class="big">'+quizScore+" / "+quiz.length+'</div><div class="muted">'+pct+'% correct</div>'+
-      '<p class="muted">'+(pct>=85?"🔥 Exam-ready on this set.":pct>=70?"Solid — review the ones you missed.":"Keep going — drill the flashcards for this topic, then retry.")+'</p>'+
-      '<button class="btn block" onclick="backToQuizPick()">Pick another set</button></div>';
+      '<p class="muted">'+(pct>=85?"🔥 Exam-ready on this one.":pct>=70?"Solid — review the ones you missed.":"Keep going — drill this lesson's flashcards, then retry.")+'</p>'+
+      '<button class="btn block" onclick="backToQuizPick()">‹ Pick another quiz</button></div>';
     return;
   }
   const it=quiz[quizIx];
-  let html='<div class="qmeta"><span>'+quizName+'</span><span>'+(quizIx+1)+" / "+quiz.length+' · Score '+quizScore+'</span></div>';
+  let html='<div class="quizhdr"><button class="qback" onclick="backToQuizPick()">‹ All quizzes</button>'+
+    '<div class="quizhdr-title">'+quizName+'</div>'+
+    '<div class="quizhdr-sub">Question '+(quizIx+1)+' of '+quiz.length+' · Score '+quizScore+'</div></div>';
   html+='<div class="card"><p style="font-weight:600;font-size:16px">'+it.q+'</p><div id="choices">';
   it.choices.forEach((ch,i)=> html+='<button class="choice" onclick="answer('+i+')">'+ch+'</button>');
   html+='</div><div id="exp"></div></div>';
@@ -2236,7 +2249,8 @@ function answer(i){
   const btns=document.querySelectorAll("#choices .choice");
   btns.forEach((b,ix)=>{ b.classList.add("dim"); if(ix===it.a)b.classList.add("correct"); if(ix===i&&i!==it.a)b.classList.add("wrong"); });
   if(i===it.a) quizScore++;
-  $("#exp").innerHTML='<div class="explain"><b>'+(i===it.a?"✅ Correct.":"❌ Not quite.")+'</b> '+it.why+'</div>'+
+  const src = quizKind==="FINAL" ? '<div style="margin-top:6px;font-size:12px;color:#5b6b7c">📘 From '+lessonLabel(it.l)+'</div>' : '';
+  $("#exp").innerHTML='<div class="explain"><b>'+(i===it.a?"✅ Correct.":"❌ Not quite.")+'</b> '+it.why+src+'</div>'+
     '<button class="btn block" onclick="nextQ()">'+(quizIx+1>=quiz.length?"See results":"Next question")+'</button>';
 }
 function nextQ(){ quizIx++; answered=false; showQuiz(); }
