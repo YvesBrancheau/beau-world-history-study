@@ -2222,7 +2222,7 @@ function lessonLabel(id){
   if(id==="L24") return "Lesson 24.1";
   return "Lesson "+id.slice(1);
 }
-function lessonImg(id){ return "img/"+id+".png"; }
+function lessonImg(id){ return "img/"+id+".jpg"; }
 function imgTag(id, cls){ return '<img class="'+cls+'" src="'+lessonImg(id)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">'; }
 function trunc(s,n){ s=String(s); return s.length>n ? s.slice(0,n-1).trim()+"…" : s; }
 function renderQuizPick(){
