@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Beau — World History Study (Sem 1 Final)</title>
+<style>
+  :root{
+    --navy:#223853; --teal:#02ADC4; --gray:#ECF0F1; --ink:#1d2733;
+    --good:#1f9d55; --bad:#d64545; --warn:#c97a0a; --card:#ffffff;
+    --shadow:0 2px 10px rgba(34,56,83,.10);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink); background:var(--gray); line-height:1.5;
+    padding-bottom:84px; /* room for bottom nav */
+  }
+  header{
+    background:var(--navy); color:#fff; padding:14px 16px calc(14px + env(safe-area-inset-bottom,0)) 16px;
+    padding-top:calc(14px + env(safe-area-inset-top,0));
+    position:sticky; top:0; z-index:20; box-shadow:var(--shadow);
+  }
+  header h1{font-size:17px; margin:0; font-weight:700; letter-spacing:.2px;}
+  .count{font-size:13px; opacity:.95; margin-top:3px;}
+  .count b{color:#7fe3ef;}
+  main{max-width:760px; margin:0 auto; padding:16px;}
+  section{display:none;}
+  section.active{display:block; animation:f .18s ease;}
+  @keyframes f{from{opacity:.3; transform:translateY(4px);}to{opacity:1; transform:none;}}
+  h2{font-size:20px; color:var(--navy); margin:4px 0 10px;}
+  h3{font-size:16px; color:var(--navy); margin:18px 0 8px;}
+  p{margin:8px 0;}
+  .card{background:var(--card); border-radius:14px; padding:16px; box-shadow:var(--shadow); margin:12px 0;}
+  .pill{display:inline-block; font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px;
+    background:var(--teal); color:#fff; letter-spacing:.3px;}
+  .pill.alt{background:#e7eef5; color:var(--navy);}
+  .muted{color:#5b6b7c; font-size:13px;}
+  .btn{display:inline-block; border:0; border-radius:12px; padding:13px 16px; font-size:15px; font-weight:700;
+    background:var(--teal); color:#fff; cursor:pointer; box-shadow:var(--shadow);}
+  .btn:active{transform:translateY(1px);}
+  .btn.sec{background:#fff; color:var(--navy); border:2px solid #d7e0ea;}
+  .btn.block{display:block; width:100%; text-align:center; margin:8px 0;}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  @media(max-width:480px){.grid{grid-template-columns:1fr;}}
+  .tile{background:#fff; border-radius:14px; padding:14px; box-shadow:var(--shadow); cursor:pointer; border:2px solid transparent;}
+  .tile:active{border-color:var(--teal);}
+  .tile .t{font-weight:700; color:var(--navy);}
+  .tile .s{font-size:12px; color:#5b6b7c; margin-top:4px;}
+  /* bottom nav */
+  nav{position:fixed; bottom:0; left:0; right:0; background:#fff; display:flex; z-index:30;
+    box-shadow:0 -2px 12px rgba(34,56,83,.12); padding-bottom:env(safe-area-inset-bottom,0);}
+  nav button{flex:1; border:0; background:none; padding:9px 2px 8px; font-size:11px; color:#7a8794; cursor:pointer; font-weight:600;}
+  nav button .ic{display:block; font-size:20px; line-height:1;}
+  nav button.on{color:var(--teal);}
+  /* flashcards */
+  .fc{min-height:230px; display:flex; align-items:center; justify-content:center; text-align:center;
+    font-size:21px; font-weight:600; padding:26px 18px; cursor:pointer; user-select:none;}
+  .fc .side{max-width:100%;}
+  .fc .lbl{font-size:11px; letter-spacing:1px; color:var(--teal); display:block; margin-bottom:10px; font-weight:800;}
+  .rate{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px;}
+  .rate button{border:0; border-radius:11px; padding:13px 4px; font-weight:800; font-size:13px; color:#fff; cursor:pointer;}
+  .r0{background:var(--bad);} .r1{background:var(--warn);} .r2{background:#3a7bd5;} .r3{background:var(--good);}
+  .bar{height:8px; background:#e4eaf0; border-radius:99px; overflow:hidden; margin:8px 0;}
+  .bar > i{display:block; height:100%; background:var(--teal);}
+  /* quiz */
+  .choice{display:block; width:100%; text-align:left; background:#fff; border:2px solid #dfe6ee; border-radius:12px;
+    padding:13px 14px; margin:8px 0; font-size:15px; cursor:pointer; color:var(--ink);}
+  .choice:active{border-color:var(--teal);}
+  .choice.correct{border-color:var(--good); background:#eafbf1;}
+  .choice.wrong{border-color:var(--bad); background:#fdeeee;}
+  .choice.dim{opacity:.6;}
+  .explain{background:#f2f7fb; border-left:4px solid var(--teal); padding:10px 12px; border-radius:8px; margin-top:10px; font-size:14px;}
+  .qmeta{display:flex; justify-content:space-between; font-size:12px; color:#5b6b7c; margin-bottom:6px;}
+  /* essays */
+  details{background:#fff; border-radius:12px; box-shadow:var(--shadow); margin:10px 0; overflow:hidden;}
+  details>summary{padding:14px 16px; font-weight:700; color:var(--navy); cursor:pointer; list-style:none;}
+  details>summary::-webkit-details-marker{display:none;}
+  details>summary::after{content:"  ›"; float:right; transition:.2s; color:var(--teal);}
+  details[open]>summary::after{transform:rotate(90deg);}
+  details .body{padding:0 16px 16px;}
+  .cdw{border-radius:8px; padding:2px 7px; font-weight:800; font-size:11px; letter-spacing:.5px; color:#fff;}
+  .c-claim{background:#3a7bd5;} .c-data{background:var(--good);} .c-warr{background:#8e44ad;}
+  .integrity{background:#fff7e6; border:1px solid #f0d9a0; color:#7a5a10; border-radius:10px; padding:10px 12px; font-size:13px; margin:10px 0;}
+  textarea{width:100%; min-height:160px; border:2px solid #d7e0ea; border-radius:12px; padding:12px; font-size:15px; font-family:inherit; resize:vertical;}
+  .check{display:flex; align-items:flex-start; gap:9px; margin:7px 0; font-size:14px;}
+  .check input{margin-top:3px; transform:scale(1.3);}
+  ul.tight{margin:6px 0; padding-left:20px;} ul.tight li{margin:5px 0;}
+  .search{width:100%; padding:12px 14px; border:2px solid #d7e0ea; border-radius:12px; font-size:15px; margin:6px 0 12px;}
+  .kv{margin:7px 0;} .kv b{color:var(--navy);}
+  .topbtns{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+  .chip{font-size:13px; padding:8px 12px; border-radius:99px; border:2px solid #d7e0ea; background:#fff; color:var(--navy); font-weight:700; cursor:pointer;}
+  .chip.on{background:var(--navy); color:#fff; border-color:var(--navy);}
+  .big{font-size:34px; font-weight:800; color:var(--navy);}
+  .stat{text-align:center; padding:10px;}
+  .statwrap{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+  hr{border:0; border-top:1px solid #e1e8ef; margin:14px 0;}
+  a{color:var(--teal);}
+</style>
+</head>
+<body>
+<header>
+  <h1>World History — Study Hub</h1>
+  <div class="count" id="countdown">Loading…</div>
+</header>
+
+<main>
+  <!-- DASHBOARD -->
+  <section id="home" class="active">
+    <div class="card">
+      <span class="pill">Start here</span>
+      <h2 style="margin-top:8px">Hey Beau 👋</h2>
+      <p class="muted">Everything you need for the <b>Semester 1 final (Fri June 26)</b>. The exam is
+      <b>66 multiple-choice/matching</b> (~65%) plus <b>one CDW essay</b> (~35%, 36 pts), on the iPad with
+      a lockdown browser — <b>no notes</b>. So the goal is to actually <i>know</i> it. Tap a tool below.</p>
+    </div>
+
+    <div class="grid">
+      <div class="tile" onclick="go('cards')"><div class="t">🃏 Flashcards</div><div class="s">Active recall + spaced repetition. The #1 way to make it stick.</div></div>
+      <div class="tile" onclick="go('quiz')"><div class="t">✅ Practice Quizzes</div><div class="s">By lesson, or a 66-question mock final.</div></div>
+      <div class="tile" onclick="go('essay')"><div class="t">✍️ Essay Trainer</div><div class="s">The 4 known topics, CDW format, and model essays.</div></div>
+      <div class="tile" onclick="go('ref')"><div class="t">📚 Reference</div><div class="s">Key terms, people & timeline you can search.</div></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:2px">📅 Your runway to June 26</h3>
+      <div id="plan"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:2px">📈 Progress</h3>
+      <div class="statwrap">
+        <div class="stat"><div class="big" id="stCards">0</div><div class="muted">cards reviewed</div></div>
+        <div class="stat"><div class="big" id="stAcc">—</div><div class="muted">quiz accuracy</div></div>
+        <div class="stat"><div class="big" id="stDue">0</div><div class="muted">cards due now</div></div>
+      </div>
+      <button class="btn sec block" onclick="resetAll()" style="margin-top:8px">Reset my progress</button>
+    </div>
+
+    <div class="integrity">
+      <b>Heads up:</b> this app is for <b>studying</b> — flashcards, quizzes, and learning the essay format.
+      Your class bans AI on anything you submit, so never copy these notes/essays into homework. The model essays
+      below are <b>examples to learn the structure from</b>; on the real final you write your own from memory anyway.
+    </div>
+  </section>
+
+  <!-- FLASHCARDS -->
+  <section id="cards">
+    <h2>🃏 Flashcards</h2>
+    <p class="muted">Look at the front, say the answer <b>out loud or in your head first</b>, then flip. Be honest when you rate yourself — that is what schedules the next review.</p>
+    <div class="topbtns" id="deckpick"></div>
+    <label class="check" style="margin:4px 0 10px"><input type="checkbox" id="cram" checked><span><b>Cram mode</b> — ignore the schedule and drill everything (best right before the exam).</span></label>
+    <div id="fcStage"></div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz">
+    <h2>✅ Practice Quizzes</h2>
+    <div id="quizPick"></div>
+    <div id="quizStage"></div>
+  </section>
+
+  <!-- ESSAY -->
+  <section id="essay">
+    <h2>✍️ Essay Trainer</h2>
+    <div id="essayHome"></div>
+    <div id="essayStage"></div>
+  </section>
+
+  <!-- REFERENCE -->
+  <section id="ref">
+    <h2>📚 Reference</h2>
+    <input class="search" id="refSearch" placeholder="Search a term, person, or event…" oninput="renderRef()">
+    <div id="refStage"></div>
+  </section>
+</main>
+
+<nav>
+  <button data-t="home" class="on" onclick="go('home')"><span class="ic">🏠</span>Home</button>
+  <button data-t="cards" onclick="go('cards')"><span class="ic">🃏</span>Cards</button>
+  <button data-t="quiz" onclick="go('quiz')"><span class="ic">✅</span>Quiz</button>
+  <button data-t="essay" onclick="go('essay')"><span class="ic">✍️</span>Essay</button>
+  <button data-t="ref" onclick="go('ref')"><span class="ic">📚</span>Ref</button>
+</nav>
+
+<script>
+/* =========================================================================
+   DATA  —  Semester 1 (final = Fri June 26, 2026)
+   History Alive! World Connections L13–L19, L24.1 + Ch 26 (Age of Democracy)
+   ========================================================================= */
+const META = { examLabel:"Semester 1 Final", examDate:"2026-06-26" };
+
+const LESSONS = [
+ { id:"L13", title:"Transformation of Europe", tag:"Roots of revolution",
+   blurb:"Renaissance, Reformation, Scientific Revolution, and Enlightenment ideas (reason, natural rights, the social contract) that later fueled the political revolutions.",
+   cards:[
+     {f:"What was the Enlightenment?", b:"An 1700s movement applying REASON to government and society. Its ideas (natural rights, social contract, popular sovereignty) directly fueled the American, French, and Latin American revolutions."},
+     {f:"John Locke — main idea", b:"People have natural rights to LIFE, LIBERTY, and PROPERTY. Government's job is to protect them; if it doesn't, the people may overthrow it (consent of the governed). Huge influence on the Declaration of Independence."},
+     {f:"Montesquieu — main idea", b:"SEPARATION OF POWERS into branches with checks and balances, so no one part of government gets too powerful. Shaped the U.S. Constitution."},
+     {f:"Rousseau — main idea", b:"The SOCIAL CONTRACT: legitimate government comes from the consent of the people (the 'general will'). 'Man is born free, and everywhere he is in chains.'"},
+     {f:"Voltaire — main idea", b:"Freedom of speech and religious tolerance; fierce critic of the Church and intolerance."},
+     {f:"Define: absolutism / divine right", b:"Absolutism = a ruler (absolute monarch) holds total power. Divine right = the belief that monarch's authority comes from God. Louis XIV of France ('the Sun King') is the classic example."},
+     {f:"Constitutional monarchy vs. absolute monarchy", b:"Absolute monarchy: the king holds real power (Louis XIV). Constitutional monarchy: a monarch exists but an elected body (e.g., Parliament) holds the real power (Britain after the 1600s)."},
+     {f:"Scientific Revolution — why it mattered", b:"Thinkers like Copernicus, Galileo, and Newton used observation and reason instead of tradition. This 'question everything with evidence' attitude paved the way for the Enlightenment."},
+     {f:"The Reformation — one-line", b:"Martin Luther's 95 Theses (1517) split Western Christianity into Catholic and Protestant, weakening the Church's authority and encouraging people to question tradition."},
+     {f:"How do L13 ideas connect to the revolutions?", b:"Enlightenment thinkers gave people the ARGUMENTS — natural rights, consent of the governed, separation of powers — that revolutionaries used to justify overthrowing kings and colonial rulers."}
+   ]},
+
+ { id:"L14", title:"Toward a Global Economy", tag:"Essay Topic 1",
+   blurb:"Age of Exploration, the Columbian Exchange, mercantilism, and the Atlantic slave trade connect the world into one economy — for the first time linking the Americas, Europe, Africa, and Asia.",
+   cards:[
+     {f:"What was the Columbian Exchange?", b:"The transfer of plants, animals, people, and DISEASES between the 'New World' (Americas) and 'Old World' (Europe, Africa, Asia) after 1492."},
+     {f:"Columbian Exchange — Old World → Americas", b:"Horses, cattle, pigs, wheat, sugar, coffee — and deadly DISEASES like smallpox and measles."},
+     {f:"Columbian Exchange — Americas → Old World", b:"Corn (maize), potatoes, tomatoes, cacao (chocolate), tobacco. Potatoes and corn caused population BOOMS in Europe, Africa, and Asia."},
+     {f:"Biggest demographic impact on Native Americans?", b:"DISEASE. Smallpox and other Old World diseases killed up to ~90% of the Native population in some areas — far more than warfare."},
+     {f:"Why did the Atlantic slave trade grow?", b:"Disease devastated Native labor, so European colonizers forced enslaved Africans to work plantations (sugar, tobacco) and mines in the Americas."},
+     {f:"Define: the Middle Passage", b:"The brutal sea voyage that carried enslaved Africans across the Atlantic to the Americas — part of the triangular trade."},
+     {f:"Define: triangular trade", b:"The Atlantic trade network: manufactured goods to Africa, enslaved Africans to the Americas, raw materials (sugar, cotton, tobacco) back to Europe."},
+     {f:"Define: mercantilism", b:"Economic policy where a colony exists to ENRICH the mother country. Nations wanted a favorable balance of trade (export more than they import) and hoarded gold and silver."},
+     {f:"Define: joint-stock company", b:"A business where many investors pool money and share risk/profit (e.g., the British and Dutch East India Companies). It funded risky overseas ventures."},
+     {f:"New World vs. Old World — quick contrast (for the essay)", b:"NEW WORLD: catastrophic disease, conquest, forced labor, loss of cultures. OLD WORLD: new crops fed population growth, new wealth (silver), and the rise of capitalism and the slave trade."}
+   ]},
+
+ { id:"L15", title:"Political Revolutions & Their Legacies", tag:"Essay Topic 2",
+   blurb:"The American, French, and Latin American revolutions — all powered by Enlightenment ideas, but with different causes, courses, and results.",
+   cards:[
+     {f:"American Revolution — main cause", b:"Colonists resented British taxes passed without their consent ('no taxation without representation') and were inspired by Enlightenment ideas of natural rights and self-government."},
+     {f:"American Revolution — main result", b:"An independent republic with a written Constitution and Bill of Rights. It became a MODEL that inspired the French and Latin American revolutions."},
+     {f:"French Revolution — main causes", b:"Huge inequality (the Three Estates — clergy, nobles, and everyone else), government debt, food shortages, and Enlightenment ideas. The Third Estate carried almost the whole tax burden."},
+     {f:"What were the Three Estates?", b:"1st = clergy, 2nd = nobles (both mostly tax-exempt), 3rd = everyone else (~97% of people) who paid the taxes. This inequality helped spark the French Revolution."},
+     {f:"Declaration of the Rights of Man (1789)", b:"France's Enlightenment-based statement of 'liberty, equality, fraternity' and natural rights — France's version of the Declaration of Independence."},
+     {f:"The Reign of Terror", b:"Radical phase of the French Revolution led by Robespierre; thousands executed by guillotine as 'enemies of the revolution.' Shows how the French Revolution turned violent and chaotic."},
+     {f:"How did the French Revolution end up?", b:"Chaos and the Reign of Terror led to Napoleon Bonaparte seizing power. He crowned himself emperor — but spread revolutionary ideas (and the Napoleonic Code) across Europe."},
+     {f:"Latin American Revolutions — main causes", b:"Enlightenment ideas + the American and French examples + creoles' resentment of being ruled by peninsulares (Spanish-born officials) who held all the top jobs."},
+     {f:"Creoles vs. peninsulares", b:"Peninsulares = born in Spain, held top colonial positions. Creoles = American-born of European descent, wealthy but blocked from top power. Creole resentment drove the Latin American revolutions."},
+     {f:"Haitian Revolution — why it's special", b:"Led by Toussaint L'Ouverture, it was the only successful large-scale SLAVE revolt — Haiti became the first independent Black republic (1804)."},
+     {f:"Simón Bolívar & José de San Martín", b:"'Liberators' who led independence movements across South America, freeing much of the continent from Spain. Bolívar is called 'El Libertador.'"},
+     {f:"Compare the 3 revolutions in ONE sentence (essay gold)", b:"All three drew on Enlightenment natural-rights ideas, but the American (colony vs. distant Britain) produced a stable republic, the French (internal class revolt) collapsed into Terror then Napoleon, and the Latin American (creoles vs. Spain) won independence but left lasting inequality and instability."}
+   ]},
+
+ { id:"L16", title:"The Industrial Revolution", tag:"Essay Topic 3",
+   blurb:"Why industrialization began in Britain, the move from hand production to factories and machines, and the rise of the modern industrial economy.",
+   cards:[
+     {f:"What was the Industrial Revolution?", b:"The shift (starting ~1760s) from making goods by hand at home to making them by MACHINES in FACTORIES, powered first by water and then by steam."},
+     {f:"Why did it start in BRITAIN? (key reasons)", b:"Plenty of coal and iron, lots of capital (money) to invest, colonies for raw materials and markets, a stable government, and an Agricultural Revolution that freed up workers for factories."},
+     {f:"What was the Agricultural Revolution's role?", b:"Better farming methods (crop rotation, enclosure) produced more food with fewer workers — so surplus workers moved to cities to work in factories."},
+     {f:"Define: the enclosure movement", b:"Wealthy landowners fenced off common land into private farms. It boosted food output but pushed small farmers off the land and into the cities — a labor supply for factories."},
+     {f:"Why was the textile (cloth) industry first?", b:"Inventions like the spinning jenny and water frame let machines spin thread and weave cloth far faster than by hand, making textiles the first industry to mechanize."},
+     {f:"James Watt — contribution", b:"Improved the STEAM ENGINE. Steam power freed factories from rivers (they no longer needed water wheels) and powered trains and ships — the engine of the whole revolution."},
+     {f:"Define: factors of production", b:"The resources needed to produce goods: LAND (natural resources), LABOR (workers), and CAPITAL (money, machines, factories). Britain had all three."},
+     {f:"What is urbanization?", b:"The rapid growth of CITIES as people moved from the countryside to work in factories. It led to crowded, often unhealthy living conditions."}
+   ]},
+
+ { id:"L17", title:"Consequences of Industrialization", tag:"Essay Topic 3",
+   blurb:"The social, economic, and political effects of industrialization — new classes, harsh conditions, reform, and the clash between capitalism and socialism.",
+   cards:[
+     {f:"Social effects of industrialization", b:"Cities exploded; new social classes formed (industrial middle class + working class); early factory conditions were harsh, with long hours, low pay, child labor, and pollution."},
+     {f:"What were working conditions like at first?", b:"Dangerous machines, 12–16 hour days, low wages, child labor, and filthy crowded tenements. Over time, reforms and unions slowly improved them."},
+     {f:"Define: capitalism / laissez-faire", b:"Capitalism = private owners run business for profit. Laissez-faire = government should NOT interfere in the economy. Adam Smith (The Wealth of Nations) is the key thinker."},
+     {f:"Define: socialism", b:"The idea that society (or government) should own or control the means of production to distribute wealth more fairly — a reaction against the inequality of early capitalism."},
+     {f:"Karl Marx — main idea", b:"In The Communist Manifesto (1848, with Engels), Marx argued history is a CLASS STRUGGLE between the bourgeoisie (owners) and the proletariat (workers), and predicted workers would overthrow the owners."},
+     {f:"Bourgeoisie vs. proletariat", b:"Bourgeoisie = the middle-class OWNERS of factories and capital. Proletariat = the WORKERS who sell their labor. Marx said their conflict drives history."},
+     {f:"What were labor unions and what did they do?", b:"Organizations of workers that used STRIKES and collective bargaining to demand better wages, hours, and conditions. They helped win major reforms."},
+     {f:"Name reforms that came from industrialization", b:"Laws ending/limiting child labor, factory safety acts, shorter workdays, legal labor unions, expanded voting rights, and public education."}
+   ]},
+
+ { id:"L18", title:"Industrialization & Global Revolutions", tag:"Bridge to imperialism",
+   blurb:"How industrialization in Europe drove a NEW wave of imperialism — the need for raw materials and markets, plus the technology and ideology to conquer.",
+   cards:[
+     {f:"How did industrialization CAUSE new imperialism?", b:"Factories needed RAW MATERIALS (rubber, cotton, oil) and new MARKETS to sell goods, so industrial nations seized colonies to supply both."},
+     {f:"What technology made conquest possible?", b:"Steamships and railroads (move troops/goods), the telegraph (communicate), the Maxim machine gun (overwhelm armies), and quinine (prevented malaria in Africa)."},
+     {f:"Define: Social Darwinism", b:"The (false) idea that 'survival of the fittest' applied to nations and races — used to JUSTIFY Europeans dominating other peoples as 'natural' and 'civilizing.'"},
+     {f:"What was the 'White Man's Burden'?", b:"A racist idea that it was Europeans' duty to 'civilize' non-European peoples — used to justify imperialism as if it were a moral mission."},
+     {f:"How did nationalism fuel imperialism?", b:"National pride and competition pushed European powers to grab colonies to prove their strength and prestige relative to rivals."},
+     {f:"One-line: link industrialization → imperialism", b:"Industrialization gave Europe the MOTIVE (raw materials + markets), the MEANS (steamships, guns, medicine), and the EXCUSE (Social Darwinism) to conquer much of the world."}
+   ]},
+
+ { id:"L19", title:"Imperialism Throughout the World", tag:"Essay Topic 4",
+   blurb:"How European powers (and later Japan) seized control across Africa and Asia — and how the people there responded, region by region.",
+   cards:[
+     {f:"Define: imperialism", b:"When a powerful nation takes political and economic control over a weaker territory or people."},
+     {f:"Colony vs. protectorate vs. sphere of influence", b:"Colony = directly ruled. Protectorate = keeps its own rulers but they obey the imperial power. Sphere of influence = an area where one outside nation has exclusive trade/investment rights."},
+     {f:"What was the 'Scramble for Africa'?", b:"The rapid carving-up of nearly all of Africa by European powers in the late 1800s."},
+     {f:"Berlin Conference (1884–85)", b:"European powers met to divide Africa among themselves — with NO African representatives present. They drew borders ignoring local ethnic and cultural lines."},
+     {f:"Which African nations stayed independent?", b:"ETHIOPIA (defeated Italy at the Battle of Adwa, 1896) and LIBERIA. Ethiopia is the key example of successful armed resistance."},
+     {f:"India — how did Britain take control?", b:"The British East India Company ran India; after the Sepoy Rebellion (1857) the British government took DIRECT control — the 'British Raj.' India was the 'jewel in the crown.'"},
+     {f:"What caused the Sepoy Rebellion (1857)?", b:"Indian soldiers (sepoys) revolted partly over rifle cartridges rumored to be greased with cow and pig fat (offensive to Hindus and Muslims) — and deeper resentment of British rule."},
+     {f:"India — effects of British rule", b:"Railroads, telegraphs, and schools were built, BUT British policy wrecked India's textile industry, caused famines, and eventually sparked Indian nationalism (Indian National Congress)."},
+     {f:"China — the Opium Wars", b:"Britain sold opium in China; when China resisted, Britain won the Opium Wars (1839–42). The Treaty of Nanjing gave Britain Hong Kong and forced 'unequal treaties' opening China to foreigners."},
+     {f:"China — spheres of influence & Boxer Rebellion", b:"Foreign powers carved China into spheres of influence. The Boxer Rebellion (1900) was an anti-foreign uprising — it was crushed, further weakening China. China was never fully colonized."},
+     {f:"Japan — the Meiji Restoration", b:"After Commodore Perry forced Japan open (1853), Japan rapidly MODERNIZED and industrialized under Emperor Meiji (from 1868), avoided being colonized, and became an imperial power itself."},
+     {f:"Why is Japan the standout response to imperialism?", b:"Instead of resisting or being dominated, Japan ADOPTED Western technology and industrialized so successfully it became a colonizer — defeating China (1895) and Russia (1905)."},
+     {f:"Responses to imperialism — the big contrast (essay)", b:"India: rebellion → nationalist movement. China: rebellions (Taiping, Boxer) that failed → kept weakening. Africa: mostly armed resistance that failed (except Ethiopia). Japan: modernized and became an imperial power — the only fully successful response."},
+     {f:"Common RESULT of imperialism everywhere", b:"Loss of independence and resources for the colonized, breakdown of traditional societies, arbitrary borders — and the rise of NATIONALISM and resistance movements that later won independence."}
+   ]},
+
+ { id:"L24", title:"Lesson 24.1 — Nationalism & Unification", tag:"Nation-building",
+   blurb:"Nationalism — pride in and loyalty to one's nation — reshaped Europe, helping unify Italy and Germany into powerful new nation-states. (If your L24.1 covers a different topic, use the Reference search and your readings.)",
+   cards:[
+     {f:"Define: nationalism", b:"Deep pride in and loyalty to one's nation — the belief that people who share a language, culture, or history should have their own self-governing state. A driving force of 1800s history."},
+     {f:"How can nationalism both UNITE and DIVIDE?", b:"It UNIFIED scattered peoples into nations (Italy, Germany), but it could also DIVIDE multi-ethnic empires (like Austria-Hungary and the Ottomans) as groups demanded independence."},
+     {f:"Italian unification — key idea", b:"Many small Italian states were unified into one Italy by the mid-1800s, led by figures like Cavour (diplomacy) and Garibaldi (military)."},
+     {f:"German unification — Otto von Bismarck", b:"Bismarck unified Germany (1871) through 'blood and iron' (realpolitik) — practical, ruthless politics and war, rather than idealism."},
+     {f:"Define: realpolitik", b:"Politics based on practical power and results rather than ideals or morality — Bismarck's approach to unifying Germany."},
+     {f:"Why does nationalism matter going forward?", b:"Unified Germany and Italy upset Europe's balance of power, and rival nationalisms helped set the stage for World War I (Semester 2)."}
+   ]},
+
+ { id:"C26", title:"Ch 26 — An Age of Democracy and Progress", tag:"From the PDF",
+   blurb:"Democratic reform (Britain & France), self-rule for British colonies, U.S. growth, and the scientific/technological progress of the 1800s. (This is the non-TCI chapter PDF.)",
+   cards:[
+     {f:"How did Britain expand the right to vote (suffrage)?", b:"Gradually: the Reform Bill of 1832 (middle-class men) → 1867 (working-class men) → 1884 (rural men) → 1918 (women over 30). Britain became a democracy step by step, not by revolution."},
+     {f:"What was the Chartist movement?", b:"A working-class movement (People's Charter, 1838) demanding universal MALE suffrage, the secret ballot, and pay for members of Parliament. Most demands eventually became law."},
+     {f:"Define: suffrage", b:"The right to vote. Extending suffrage to more groups (working men, then women) is a main theme of Ch 26."},
+     {f:"Queen Victoria — significance", b:"Reigned nearly 64 years (1837–1901) over Britain at its peak. During her reign real power shifted to Parliament and the prime minister; the monarchy became more symbolic."},
+     {f:"Women's suffrage — who and how?", b:"Reformers like Emmeline Pankhurst and the 'suffragettes' fought (sometimes militantly) for women's right to vote. New Zealand was first (1893); British women over 30 won it in 1918."},
+     {f:"France's Third Republic", b:"After Napoleon III fell (1871), France became the Third Republic — a democracy, but unstable, with many parties and frequent changes of government."},
+     {f:"What was the Dreyfus affair?", b:"A Jewish French army officer, Alfred Dreyfus, was falsely convicted of treason. The scandal exposed deep ANTI-SEMITISM in France; writer Émile Zola defended him ('J'Accuse')."},
+     {f:"What is Zionism (and why did it arise)?", b:"A movement, led by Theodor Herzl, to create a Jewish homeland — a response to the anti-Semitism exposed by events like the Dreyfus affair."},
+     {f:"Self-rule for British colonies — Canada & Australia", b:"Britain granted self-government to settler colonies as 'dominions' — Canada (confederated 1867) and Australia & New Zealand — which ran their own affairs while staying tied to Britain."},
+     {f:"The 'Irish question'", b:"Ireland struggled for HOME RULE (self-government) from Britain for decades; conflict over it lasted into the 1900s."},
+     {f:"Charles Darwin — theory of evolution", b:"In On the Origin of Species (1859), Darwin proposed evolution by NATURAL SELECTION. (Misused by others as 'Social Darwinism' to justify imperialism.)"},
+     {f:"Major 1800s science & medicine advances", b:"Louis Pasteur's germ theory (and pasteurization), antiseptics and anesthesia (safer surgery), Marie Curie's work on radioactivity — medicine improved and people lived longer, fueling city growth."},
+     {f:"Key inventions / mass culture of the late 1800s", b:"Light bulb (Edison), telephone (Bell), automobile and assembly line (Ford), the airplane (Wright brothers). Higher pay + leisure time created MASS CULTURE: newspapers, sports, and entertainment."}
+   ]}
+];
+
+/* ---------------- MULTIPLE-CHOICE BANK ---------------- */
+const MCQ = [
+ // L13
+ {l:"L13", q:"Which Enlightenment thinker argued people have natural rights to life, liberty, and property?", c:["Louis XIV","John Locke","Napoleon","Karl Marx"], a:1, why:"Locke's natural-rights idea shaped the American Declaration of Independence."},
+ {l:"L13", q:"Montesquieu is best known for the idea of:", c:["Divine right of kings","Separation of powers","The Columbian Exchange","Laissez-faire economics"], a:1, why:"Separation of powers / checks and balances shaped the U.S. Constitution."},
+ {l:"L13", q:"The 'social contract' — that government's power comes from the consent of the people — is most associated with:", c:["Rousseau","Cortés","Bismarck","Queen Victoria"], a:0, why:"Rousseau argued legitimate government rests on the 'general will' of the people."},
+ {l:"L13", q:"Absolutism and 'divine right' are best illustrated by which ruler?", c:["George Washington","Toussaint L'Ouverture","Louis XIV of France","Simón Bolívar"], a:2, why:"Louis XIV, the 'Sun King,' is the classic absolute monarch claiming God-given authority."},
+ {l:"L13", q:"In a constitutional monarchy like Britain, real political power is held by:", c:["The monarch alone","An elected Parliament","The Pope","The army"], a:1, why:"A monarch remains but an elected body holds the real power."},
+ {l:"L13", q:"The Scientific Revolution most directly encouraged the Enlightenment by promoting:", c:["Loyalty to the Church","Reason and observation over tradition","Absolute monarchy","Mercantilism"], a:1, why:"Using evidence and reason carried over from science into ideas about society and government."},
+ {l:"L13", q:"How did Enlightenment ideas most influence later history?", c:["They ended the slave trade immediately","They provided justifications for political revolutions","They started the Industrial Revolution","They unified Germany"], a:1, why:"Natural rights and consent of the governed became the arguments for the American, French, and Latin American revolutions."},
+ {l:"L13", q:"Martin Luther's 95 Theses (1517) launched the:", c:["Renaissance","Reformation","Enlightenment","Scientific Revolution"], a:1, why:"The Reformation split Western Christianity and weakened Church authority."},
+
+ // L14
+ {l:"L14", q:"The Columbian Exchange refers to the transfer of plants, animals, people, and diseases between:", c:["Europe and Asia","The Old World and the New World","Africa and Asia","Britain and its colonies"], a:1, why:"It linked the Americas with Europe, Africa, and Asia after 1492."},
+ {l:"L14", q:"Which had the most devastating effect on Native American populations?", c:["European weapons","Old World diseases like smallpox","Famine","Forced religious conversion"], a:1, why:"Disease killed up to ~90% of Native people in some regions — far more than warfare."},
+ {l:"L14", q:"Which crops went from the AMERICAS to the rest of the world, causing population growth?", c:["Wheat and sugar","Corn and potatoes","Coffee and rice","Bananas and tea"], a:1, why:"Corn and potatoes were calorie-rich New World crops that boosted Old World populations."},
+ {l:"L14", q:"The Atlantic slave trade expanded largely because:", c:["Europeans preferred African culture","Native American labor had collapsed from disease","Africa had no other trade goods","The Pope ordered it"], a:1, why:"With Native labor devastated, colonizers forced enslaved Africans to work plantations and mines."},
+ {l:"L14", q:"Mercantilism held that colonies existed mainly to:", c:["Govern themselves","Enrich the mother country","Spread the Enlightenment","Trade freely with everyone"], a:1, why:"Colonies supplied raw materials and markets to benefit the parent nation."},
+ {l:"L14", q:"The 'Middle Passage' was:", c:["A trade route through the Alps","The voyage carrying enslaved Africans to the Americas","A part of the Silk Road","The path of Magellan's ships"], a:1, why:"It was the brutal Atlantic leg of the triangular trade."},
+ {l:"L14", q:"A joint-stock company helped exploration by:", c:["Letting investors pool money and share risk","Giving the king total control","Banning private trade","Outlawing slavery"], a:0, why:"Pooled investment funded risky voyages (e.g., the East India Companies)."},
+ {l:"L14", q:"A nation following mercantilism wanted a 'favorable balance of trade,' meaning it:", c:["Imported more than it exported","Exported more than it imported","Traded only with rivals","Gave away its gold"], a:1, why:"Exporting more than you import brings in wealth (gold/silver)."},
+ {l:"L14", q:"One major OLD WORLD effect of European exploration was:", c:["The collapse of Native empires","New wealth and crops that grew Europe's population","The end of monarchy","Immediate industrialization"], a:1, why:"New crops (potatoes, corn) and American silver fueled European growth and capitalism."},
+ {l:"L14", q:"A key contrast between New World and Old World impacts of exploration is:", c:["Both gained population equally","The New World suffered conquest and disease while the Old World gained crops and wealth","Neither was affected much","The Old World lost most of its population"], a:1, why:"This contrast is the heart of Essay Topic 1."},
+
+ // L15
+ {l:"L15", q:"A shared cause of the American, French, and Latin American revolutions was:", c:["Industrialization","Enlightenment ideas about natural rights","The Columbian Exchange","Nationalism in Germany"], a:1, why:"All three drew on Enlightenment ideas (natural rights, consent of the governed)."},
+ {l:"L15", q:"'No taxation without representation' was a rallying cry of the:", c:["French Revolution","American Revolution","Haitian Revolution","Boxer Rebellion"], a:1, why:"American colonists protested British taxes imposed without their consent."},
+ {l:"L15", q:"In pre-revolution France, which group carried most of the tax burden?", c:["The clergy (First Estate)","The nobles (Second Estate)","The Third Estate (commoners)","The king"], a:2, why:"The First and Second Estates were largely tax-exempt; the Third Estate (~97%) paid."},
+ {l:"L15", q:"The Reign of Terror is associated with which leader?", c:["Robespierre","Napoleon","Bolívar","Locke"], a:0, why:"Robespierre led the radical phase that executed thousands by guillotine."},
+ {l:"L15", q:"The French Revolution ultimately led to the rise of:", c:["Queen Victoria","Napoleon Bonaparte","Otto von Bismarck","Simón Bolívar"], a:1, why:"Chaos and the Terror opened the door for Napoleon to seize power."},
+ {l:"L15", q:"The Haitian Revolution is historically unique because it was:", c:["Led by Napoleon","The only successful large-scale slave revolt, creating a free republic","A failure","Funded by Britain"], a:1, why:"Led by Toussaint L'Ouverture, Haiti became the first independent Black republic (1804)."},
+ {l:"L15", q:"Creole resentment that fueled Latin American revolutions was aimed at:", c:["Enslaved Africans","Peninsulares (Spanish-born officials)","Other creoles","Native Americans"], a:1, why:"Creoles were wealthy but blocked from top posts held by Spain-born peninsulares."},
+ {l:"L15", q:"Simón Bolívar and José de San Martín are famous as:", c:["French philosophers","Liberators of South America from Spain","British prime ministers","Industrial inventors"], a:1, why:"They led independence movements across South America."},
+ {l:"L15", q:"A key DIFFERENCE between the American and French revolutions was that:", c:["Only the French used Enlightenment ideas","The American produced a stable republic while the French collapsed into terror and dictatorship","The American executed its king","Neither sought independence"], a:1, why:"This conceptual contrast (not just different names) earns essay credit."},
+ {l:"L15", q:"A lasting LEGACY shared by these revolutions was:", c:["The spread of absolute monarchy","The spread of ideas of popular sovereignty and natural rights","The end of all inequality","Immediate world peace"], a:1, why:"They spread the idea that government should rest on the consent of the people."},
+ {l:"L15", q:"The Declaration of the Rights of Man came from which revolution?", c:["American","French","Latin American","Russian"], a:1, why:"It was France's Enlightenment-based statement of rights (1789)."},
+ {l:"L15", q:"One reason the Latin American revolutions led to instability was:", c:["They had no leaders","Deep social inequalities and rivalries remained after independence","They rejected all Enlightenment ideas","Spain immediately reconquered them"], a:1, why:"Independence didn't erase class and racial divisions, causing later instability."},
+
+ // L16
+ {l:"L16", q:"The Industrial Revolution began in:", c:["France","Britain","Germany","The United States"], a:1, why:"Britain had coal, iron, capital, colonies, and a stable government."},
+ {l:"L16", q:"Which was NOT a reason industrialization began in Britain?", c:["Abundant coal and iron","Capital to invest","A large empire of colonies and markets","A lack of available workers"], a:3, why:"Britain actually had a SURPLUS of workers thanks to the Agricultural Revolution."},
+ {l:"L16", q:"The Agricultural Revolution contributed to industrialization by:", c:["Keeping everyone on farms","Producing more food with fewer workers, freeing labor for factories","Banning new machines","Ending trade"], a:1, why:"Surplus rural workers moved to cities to work in factories."},
+ {l:"L16", q:"The enclosure movement:", c:["Opened all land to the public","Fenced common land into private farms, pushing small farmers to cities","Outlawed farming","Was a factory safety law"], a:1, why:"It increased output but displaced farmers, supplying factory labor."},
+ {l:"L16", q:"Which industry mechanized FIRST?", c:["Steel","Textiles (cloth)","Automobiles","Oil"], a:1, why:"Inventions like the spinning jenny and water frame made textiles first."},
+ {l:"L16", q:"James Watt is known for improving the:", c:["Cotton gin","Steam engine","Telephone","Light bulb"], a:1, why:"Steam power freed factories from rivers and powered trains and ships."},
+ {l:"L16", q:"The 'factors of production' are:", c:["Land, labor, and capital","Coal, iron, and steam","Trade, tax, and tariffs","Cities, farms, and ports"], a:0, why:"Land, labor, and capital are the resources needed to produce goods."},
+ {l:"L16", q:"Urbanization during the Industrial Revolution means:", c:["People moved from cities to farms","Rapid growth of cities as people came for factory work","The decline of all cities","The end of farming"], a:1, why:"Workers crowded into fast-growing factory cities."},
+
+ // L17
+ {l:"L17", q:"A major SOCIAL effect of early industrialization was:", c:["Shorter workdays from the start","Harsh factory conditions and child labor","Instant wealth for all workers","The end of cities"], a:1, why:"Early factories had long hours, low pay, danger, and child labor."},
+ {l:"L17", q:"Adam Smith is associated with:", c:["Communism","Capitalism and laissez-faire","Mercantilism","Socialism"], a:1, why:"His Wealth of Nations argued for free markets with little government interference."},
+ {l:"L17", q:"Karl Marx argued that history is driven by:", c:["Religion","Class struggle between owners and workers","Nationalism","Great kings"], a:1, why:"The Communist Manifesto (1848) framed history as bourgeoisie vs. proletariat."},
+ {l:"L17", q:"In Marx's terms, the 'proletariat' are the:", c:["Factory owners","Workers","Nobles","Clergy"], a:1, why:"Proletariat = workers; bourgeoisie = owners."},
+ {l:"L17", q:"Laissez-faire economics holds that government should:", c:["Run all factories","Stay out of the economy","Ban private property","Set all wages"], a:1, why:"Laissez-faire means minimal government interference in business."},
+ {l:"L17", q:"Labor unions improved workers' lives mainly by:", c:["Lowering wages","Using strikes and bargaining to demand better conditions","Closing factories","Banning machines"], a:1, why:"Collective action won shorter hours, better pay, and safety laws."},
+ {l:"L17", q:"Which was a REFORM that resulted from industrialization?", c:["Laws against child labor","The return to feudalism","The end of all trade","Bans on public school"], a:0, why:"Reforms included child-labor laws, factory acts, unions, suffrage, and public education."},
+ {l:"L17", q:"Socialism arose mainly as a reaction to:", c:["The inequality and poor conditions of early capitalism","The Enlightenment","Mercantilism","Imperialism in Japan"], a:0, why:"Socialists wanted wealth shared more fairly than early industrial capitalism allowed."},
+
+ // L18
+ {l:"L18", q:"How did industrialization most directly lead to new imperialism?", c:["It ended the need for colonies","Factories needed raw materials and new markets","It made nations pacifist","It reduced competition"], a:1, why:"Industrial economies needed resources to consume and markets to sell to."},
+ {l:"L18", q:"Which technology helped Europeans conquer the interior of Africa?", c:["The printing press","Quinine (to prevent malaria) and the machine gun","The compass","Gunpowder for the first time"], a:1, why:"Quinine, steamships, railroads, and the Maxim gun made conquest possible."},
+ {l:"L18", q:"Social Darwinism was used to:", c:["End slavery","Justify European domination of other peoples","Promote democracy","Oppose imperialism"], a:1, why:"It falsely applied 'survival of the fittest' to races and nations."},
+ {l:"L18", q:"The 'White Man's Burden' was the idea that Europeans:", c:["Should leave colonies alone","Had a duty to 'civilize' other peoples","Should industrialize Africa equally","Opposed all empire"], a:1, why:"It was a racist justification framing imperialism as a moral mission."},
+ {l:"L18", q:"Besides resources, what FUELED competition for colonies?", c:["Nationalism and national prestige","Pacifism","Religious tolerance","A lack of technology"], a:0, why:"National pride pushed powers to grab colonies to outdo rivals."},
+ {l:"L18", q:"The best one-line link is: industrialization gave Europe the…", c:["motive, the means, and the excuse for imperialism","reason to end empire","ability to avoid war","desire to isolate"], a:0, why:"Motive (materials/markets), means (technology), excuse (Social Darwinism)."},
+
+ // L19
+ {l:"L19", q:"The 'Scramble for Africa' refers to:", c:["African unification","Europeans rapidly dividing up nearly all of Africa","An African gold rush","A famine"], a:1, why:"European powers seized almost all of Africa in the late 1800s."},
+ {l:"L19", q:"At the Berlin Conference (1884–85), Africa was divided:", c:["By African leaders","By Europeans with no Africans present","By the United Nations","Equally among all"], a:1, why:"Borders were drawn ignoring African ethnic and cultural lines."},
+ {l:"L19", q:"Which African nation successfully resisted European conquest?", c:["Egypt","Ethiopia","Congo","Nigeria"], a:1, why:"Ethiopia defeated Italy at the Battle of Adwa (1896)."},
+ {l:"L19", q:"A 'sphere of influence' is best described as:", c:["A directly ruled colony","An area where one outside nation has exclusive trading rights","An independent nation","A military base"], a:1, why:"China was carved into spheres of influence by foreign powers."},
+ {l:"L19", q:"The Sepoy Rebellion (1857) in India led to:", c:["Indian independence","The British government taking direct control (the Raj)","The end of British trade","A French takeover"], a:1, why:"After the revolt, Britain ruled India directly as the 'jewel in the crown.'"},
+ {l:"L19", q:"A trigger of the Sepoy Rebellion was:", c:["A new tax on tea","Rifle cartridges greased with cow and pig fat","A famine in Britain","The Opium Wars"], a:1, why:"The cartridges offended both Hindu and Muslim soldiers, sparking revolt."},
+ {l:"L19", q:"The Opium Wars resulted in:", c:["China defeating Britain","Britain gaining Hong Kong and forcing 'unequal treaties' on China","Japan colonizing China","The end of the opium trade"], a:1, why:"The Treaty of Nanjing opened China to foreign control."},
+ {l:"L19", q:"The Boxer Rebellion (1900) was:", c:["A British victory celebration","An anti-foreign uprising in China that was crushed","A Japanese reform","An Indian independence movement"], a:1, why:"Its failure further weakened China before foreign powers."},
+ {l:"L19", q:"The Meiji Restoration in Japan led to:", c:["Japan being colonized","Rapid modernization that made Japan an imperial power","A return to isolation","A slave revolt"], a:1, why:"Japan industrialized, avoided colonization, and became a colonizer itself."},
+ {l:"L19", q:"Who forced Japan to open to foreign trade in 1853?", c:["Cecil Rhodes","Commodore Matthew Perry","Napoleon","Bismarck"], a:1, why:"U.S. Commodore Perry's fleet pressured Japan to open up."},
+ {l:"L19", q:"Japan's response to Western pressure is unique because Japan:", c:["Was completely conquered","Modernized and became an imperial power itself","Refused all change","Was saved by China"], a:1, why:"Adopting Western technology let Japan defeat China (1895) and Russia (1905)."},
+ {l:"L19", q:"A common RESULT of imperialism for colonized regions was:", c:["Permanent independence","Loss of resources and self-rule, plus rising nationalism","Instant industrialization","Equality with Europe"], a:1, why:"Exploitation bred resistance and nationalist movements."},
+ {l:"L19", q:"Which best contrasts responses to imperialism?", c:["All regions modernized like Japan","Japan modernized and rose, while India, China, and most of Africa were dominated or resisted unsuccessfully","All regions resisted successfully","No region resisted"], a:1, why:"Japan's adopt-and-modernize path stands out as the successful response — key for Essay Topic 4."},
+ {l:"L19", q:"A protectorate differs from a colony because a protectorate:", c:["Is ruled directly by foreigners","Keeps its own rulers who must obey the imperial power","Is fully independent","Has no government"], a:1, why:"Local rulers remain but answer to the imperial power."},
+
+ // L24.1
+ {l:"L24", q:"Nationalism is best defined as:", c:["Loyalty to a king","Pride in and loyalty to one's nation","A type of economy","A religious movement"], a:1, why:"Nationalism centers on shared language, culture, and identity."},
+ {l:"L24", q:"Otto von Bismarck unified Germany through a policy he called:", c:["Laissez-faire","'Blood and iron' (realpolitik)","Appeasement","The social contract"], a:1, why:"Bismarck used practical power and war to unify Germany (1871)."},
+ {l:"L24", q:"Nationalism could DIVIDE as well as unite by:", c:["Ending all wars","Encouraging ethnic groups in multi-ethnic empires to seek independence","Unifying the whole world","Abolishing nations"], a:1, why:"It pulled apart empires like Austria-Hungary and the Ottomans."},
+ {l:"L24", q:"Garibaldi and Cavour are associated with the unification of:", c:["Germany","Italy","Spain","Russia"], a:1, why:"Cavour (diplomacy) and Garibaldi (military) helped unify Italy."},
+ {l:"L24", q:"Realpolitik means politics based on:", c:["Ideals and morality","Practical power and results","Religious law","Random chance"], a:1, why:"It's the pragmatic, power-focused approach Bismarck used."},
+ {l:"L24", q:"Unified Germany and Italy mattered because they:", c:["Ended European rivalry","Upset the balance of power, helping set the stage for later wars","Became colonies","Rejected industrialization"], a:1, why:"New powerful nation-states increased tension leading toward WWI."},
+
+ // C26
+ {l:"C26", q:"Britain expanded the right to vote mainly by:", c:["A violent revolution","A series of gradual reform laws (1832, 1867, 1884, 1918)","A single law in 1832","Royal command"], a:1, why:"Suffrage spread step by step over the 1800s and early 1900s."},
+ {l:"C26", q:"The Chartist movement demanded:", c:["An end to Parliament","Universal male suffrage and the secret ballot","Higher taxes on workers","A return to monarchy"], a:1, why:"The People's Charter (1838) sought to make Parliament responsive to workers."},
+ {l:"C26", q:"'Suffrage' means:", c:["The right to vote","Suffering of the poor","A type of tax","A factory law"], a:0, why:"Extending suffrage is a central theme of Ch 26."},
+ {l:"C26", q:"During Queen Victoria's long reign, political power in Britain:", c:["Returned fully to the monarch","Shifted to Parliament and the prime minister","Was held by the army","Disappeared"], a:1, why:"The monarchy became more symbolic as democracy spread."},
+ {l:"C26", q:"The Dreyfus affair in France exposed:", c:["Widespread anti-Semitism","The benefits of empire","A scientific fraud","A labor strike"], a:0, why:"A Jewish officer was falsely convicted, revealing deep anti-Semitism."},
+ {l:"C26", q:"Zionism was a movement to:", c:["Create a Jewish homeland","End the French monarchy","Industrialize Russia","Unify Italy"], a:0, why:"Led by Theodor Herzl, partly in response to anti-Semitism like the Dreyfus affair."},
+ {l:"C26", q:"France's government after Napoleon III fell in 1871 was the:", c:["First Empire","Third Republic","Absolute monarchy","Commune forever"], a:1, why:"The Third Republic was a democracy, though politically unstable."},
+ {l:"C26", q:"Canada (1867) became the first British colony to be a self-governing:", c:["Republic","Dominion","Sphere of influence","Protectorate"], a:1, why:"Dominions ran their own affairs while staying linked to Britain."},
+ {l:"C26", q:"New Zealand was notable in 1893 for being first to:", c:["Industrialize","Grant women the right to vote","Abolish Parliament","Leave the British Empire"], a:1, why:"It led the world in women's suffrage."},
+ {l:"C26", q:"Charles Darwin's On the Origin of Species (1859) introduced:", c:["Germ theory","Evolution by natural selection","Radioactivity","The steam engine"], a:1, why:"Later misused as 'Social Darwinism' to justify imperialism."},
+ {l:"C26", q:"Louis Pasteur is known for:", c:["The light bulb","Germ theory and pasteurization","The telephone","Evolution"], a:1, why:"Germ theory revolutionized medicine and public health."},
+ {l:"C26", q:"Which pairing of inventor and invention is correct?", c:["Bell — automobile","Edison — light bulb","Ford — telephone","Darwin — airplane"], a:1, why:"Edison/light bulb; Bell/telephone; Ford/assembly-line car; Wright brothers/airplane."}
+];
+
+/* ---------------- ESSAY TRAINER ---------------- */
+const CDW_GUIDE = "CDW = Claim · Data · Warrant. Each BODY paragraph starts with a CLAIM (an argument that answers the prompt and supports your thesis). Then you give DATA (a specific historical fact or event, in your OWN words — quotes are not expected). Then a WARRANT that explains HOW that data proves your claim and answers the prompt. You need a thesis + 2 body paragraphs and at least 4 data+warrant pairs total (about 2 per paragraph).";
+
+const RUBRIC = [
+ "Thesis directly ANSWERS the prompt (not just restating it) — up to 4 pts",
+ "Each claim is historically accurate and supports the thesis — up to 2 pts each",
+ "Data #1 is accurate + supports the claim, with a clear warrant — up to 7 pts",
+ "Data #2 accurate + supported by a warrant — up to 7 pts",
+ "Data #3 accurate + supported by a warrant — up to 7 pts",
+ "Data #4 accurate + supported by a warrant — up to 7 pts",
+ "(Compare/contrast prompts) My similarities/differences are CONCEPTUAL, not just different names, dates, or places"
+];
+
+const ESSAYS = [
+ { id:"E1", title:"European Exploration & the Americas",
+   prompt:"Describe the various impacts of European exploration and settlement of the Americas, and compare/contrast the impacts on the 'New World' (the Americas) with the impacts on the 'Old World' (Africa, Europe, and Asia).",
+   wants:"They want you to show that exploration changed BOTH worlds — but in very different ways — and to explain those differences conceptually (not just list events). Hit demographics (disease), labor (the slave trade), economy (mercantilism, new wealth/crops), and culture.",
+   traps:"Don't just say 'the New World had Natives and the Old World had Europeans.' That's a difference in PEOPLE, not impact. Compare the TYPE of impact: the New World was largely devastated/transformed by force, while the Old World mostly gained wealth, food, and labor.",
+   databank:[
+     "DISEASE: Old World diseases (smallpox, measles) killed up to ~90% of Native Americans — the single biggest impact.",
+     "COLUMBIAN EXCHANGE to Americas: horses, cattle, pigs, wheat, sugar (+ disease).",
+     "COLUMBIAN EXCHANGE to Old World: corn and potatoes caused population BOOMS in Europe, Africa, and Asia.",
+     "LABOR: with Native populations collapsing, Europeans forced enslaved Africans across the Middle Passage to work plantations and mines.",
+     "ECONOMY: American silver and new crops fueled European wealth, capitalism, and mercantilism.",
+     "CULTURE/POLITICS: Native empires (Aztec, Inca) were conquered; European language, religion, and rule were imposed."
+   ],
+   model:"[THESIS] European exploration transformed both the New World and the Old World, but in opposite directions: the Americas were devastated through disease, conquest, and forced labor, while the Old World was enriched with new crops, new wealth, and a new supply of labor that powered its economies.\n\n[CLAIM] In the New World, the impact of European arrival was overwhelmingly destructive. [DATA] Old World diseases such as smallpox spread rapidly among Native Americans, who had no immunity, killing as much as ninety percent of the population in some regions. [WARRANT] This proves the impact on the Americas was catastrophic, because the loss of so many people shattered powerful societies like the Aztec and Inca and made European conquest far easier — an impact of destruction, not growth. [DATA] To replace the collapsing Native labor force, Europeans forced millions of enslaved Africans across the Middle Passage to work plantations and mines. [WARRANT] This shows the New World became a place of conquest and forced labor, where entire economies were rebuilt around exploitation rather than the prosperity of the people who already lived there.\n\n[CLAIM] In the Old World, by contrast, the impact of exploration was largely enrichment and growth. [DATA] New crops from the Americas, especially potatoes and corn, were calorie-rich and easy to grow, and they caused major population increases across Europe, Africa, and Asia. [WARRANT] This proves the Old World gained from exploration, because more food meant more people and stronger economies — the opposite of the demographic collapse in the Americas. [DATA] At the same time, silver mined in the Americas and the profits of the slave-and-sugar trade flowed back to Europe, fueling mercantilism and the rise of capitalism. [WARRANT] This demonstrates that while the New World lost its people and resources, the Old World grew wealthier and more economically powerful — the central difference between the two impacts."
+ },
+ { id:"E2", title:"Comparing the American, French & Latin American Revolutions",
+   prompt:"Compare and contrast the American, French, and Latin American Revolutions. Consider the causes and effects of each.",
+   wants:"Show what the three revolutions had in COMMON (Enlightenment ideas, desire for self-rule) AND how they DIFFERED in cause and outcome. Pick conceptual similarities/differences, not just 'different countries.'",
+   traps:"Saying 'America fought Britain, France had a king, Latin America fought Spain' lists differences in PLACE — no credit. Instead compare the TYPE of revolution (colony-vs-empire vs. internal class revolt) and the TYPE of outcome (stable republic vs. terror/dictatorship vs. independence-with-instability).",
+   databank:[
+     "SHARED CAUSE: all three were inspired by Enlightenment ideas — natural rights, consent of the governed, popular sovereignty.",
+     "AMERICAN: cause = taxation without representation; effect = a stable independent republic with a Constitution; became a model.",
+     "FRENCH: cause = inequality of the Three Estates + debt + famine; effect = end of absolute monarchy, but Reign of Terror, then Napoleon's dictatorship.",
+     "LATIN AMERICAN: cause = creole resentment of peninsulares + American/French examples; effect = independence from Spain, but lasting inequality and political instability.",
+     "HAITI: the only successful slave revolt — first independent Black republic (1804).",
+     "SHARED EFFECT: all spread the idea that government should rest on the consent of the people."
+   ],
+   model:"[THESIS] The American, French, and Latin American Revolutions were all inspired by the same Enlightenment ideas of natural rights and self-government, but they differed sharply in their causes and especially in their outcomes — ranging from a stable republic to violent chaos to independence shadowed by instability.\n\n[CLAIM] The three revolutions were similar because they shared the same intellectual cause: Enlightenment thought. [DATA] Each movement drew on ideas like John Locke's natural rights and the belief that government must rest on the consent of the governed, which appeared in the American Declaration of Independence and France's Declaration of the Rights of Man. [WARRANT] This proves the revolutions were fundamentally alike at their root, because all three justified overthrowing their rulers using the same argument — that legitimate power comes from the people, not from kings. [DATA] In Latin America, creoles who resented being shut out of power by Spanish-born peninsulares were directly inspired by the American and French examples. [WARRANT] This shows the shared cause was conceptual, not coincidental: one revolution's success spread the same ideas to the next.\n\n[CLAIM] Despite that shared cause, the revolutions differed dramatically in their results. [DATA] The American Revolution produced a stable, lasting republic with a written Constitution, while the French Revolution descended into the Reign of Terror, in which Robespierre's government executed thousands before Napoleon seized power as a dictator. [WARRANT] This proves the outcomes diverged because the American Revolution was a colony breaking from a distant empire, while the French Revolution was an internal class struggle that tore the society apart from within. [DATA] The Latin American revolutions won independence from Spain under leaders like Bolívar, but the new nations were left with deep social inequality and frequent instability. [WARRANT] This demonstrates a key difference in effect: unlike the United States, Latin America gained independence without gaining stability, showing that the same Enlightenment ideals produced very different worlds depending on each region's conditions."
+ },
+ { id:"E3", title:"Effects of the Industrial Revolution",
+   prompt:"Describe how the Industrial Revolution affected various historic themes: political change, social change, cultural change, and/or economic change.",
+   wants:"Pick at least TWO of the themes (political, social, cultural, economic) and explain how industrialization changed them, with specific evidence. You do NOT have to cover all four — go deep on two.",
+   traps:"Don't just say 'factories were built.' Tie each fact to a THEME and explain the change. E.g., child-labor laws = a POLITICAL change (government stepping in); Marxism = an ECONOMIC/political idea born from industrial inequality.",
+   databank:[
+     "SOCIAL: explosive urbanization; new classes (industrial middle class + working class); harsh early conditions, child labor, then reform.",
+     "ECONOMIC: rise of the factory system and capitalism; Adam Smith's laissez-faire; vast new wealth but unequal distribution.",
+     "POLITICAL: governments passed reforms — factory acts, child-labor laws, legalized unions, and expanded suffrage to working men.",
+     "IDEOLOGICAL: Karl Marx's communism/socialism arose as a reaction to industrial inequality (bourgeoisie vs. proletariat).",
+     "CULTURAL: spread of public education, growth of cities and leisure, and later mass culture."
+   ],
+   model:"[THESIS] The Industrial Revolution reshaped society in lasting ways, producing major social change through urbanization and new social classes, and major political change as governments and workers responded to the harsh conditions of industrial life.\n\n[CLAIM] The Industrial Revolution drove dramatic social change. [DATA] As factories spread, millions of people moved from the countryside into rapidly growing cities, a process called urbanization, and a new industrial working class and middle class emerged. [WARRANT] This proves industrialization changed society at its core, because it replaced the old rural, farming-based way of life with a crowded, class-divided urban society built around the factory. [DATA] Early factories relied on long hours, low pay, and child labor in dangerous, unhealthy conditions. [WARRANT] This shows the social change was not only structural but deeply human, transforming how ordinary families lived, worked, and even raised their children.\n\n[CLAIM] Industrialization also produced powerful political change. [DATA] In response to terrible conditions, governments passed reforms such as factory-safety acts and laws limiting child labor, and workers formed labor unions that used strikes to demand better treatment. [WARRANT] This proves industrialization changed politics, because it forced governments to abandon a hands-off approach and begin regulating the economy to protect workers. [DATA] The inequality of industrial society also inspired Karl Marx to write The Communist Manifesto, arguing that workers (the proletariat) would overthrow the owners (the bourgeoisie). [WARRANT] This demonstrates the depth of the political change, because industrialization gave birth to entirely new political ideologies — socialism and communism — that would shape world politics for the next century."
+ },
+ { id:"E4", title:"Responses to & Results of Imperialism",
+   prompt:"Describe and compare the responses to imperialism and the results of imperialism in Africa, India, China, and/or Japan.",
+   wants:"Choose at least TWO regions and compare HOW they responded to imperialism and WHAT resulted. The strongest essays contrast Japan (modernized and rose to power) with a region that was dominated (India, China, or Africa).",
+   traps:"Different leaders or dates are not a real comparison. Compare the KIND of response (resist by force vs. adopt and modernize) and the KIND of result (domination vs. becoming a power).",
+   databank:[
+     "AFRICA: Berlin Conference divided it among Europeans; most resistance failed, but ETHIOPIA defeated Italy (Adwa, 1896) and stayed independent.",
+     "INDIA: Sepoy Rebellion (1857) failed → direct British rule (the Raj); long-term result = exploitation, famine, and the rise of Indian nationalism.",
+     "CHINA: lost the Opium Wars; carved into spheres of influence; the Boxer Rebellion (1900) failed → China further weakened but never fully colonized.",
+     "JAPAN: forced open by Perry (1853) → Meiji Restoration modernized Japan, which AVOIDED colonization and became an imperial power (beat China 1895, Russia 1905).",
+     "COMMON RESULT for the dominated: loss of resources and self-rule, plus rising nationalism that fueled later independence movements."
+   ],
+   model:"[THESIS] Faced with Western imperialism, Asian and African societies responded in very different ways, and those responses led to very different results: while China and India resisted but were dominated, Japan chose to modernize and rose to become an imperial power itself.\n\n[CLAIM] Some societies resisted imperialism directly but were ultimately dominated. [DATA] In India, soldiers launched the Sepoy Rebellion in 1857, but it failed, and the British government responded by taking direct control of India as the 'jewel in the crown' of its empire. [WARRANT] This proves that armed resistance against an industrialized power often backfired, because India's revolt led not to freedom but to even tighter and more direct British rule. [DATA] In China, the anti-foreign Boxer Rebellion of 1900 was crushed by foreign troops after China had already lost the Opium Wars and been carved into spheres of influence. [WARRANT] This shows a similar result to India: resistance without modernization left China weakened and increasingly controlled by outside powers.\n\n[CLAIM] Japan, by contrast, responded by transforming itself, and the result was the opposite of domination. [DATA] After Commodore Perry forced Japan to open in 1853, the Meiji Restoration rapidly industrialized and modernized the country along Western lines. [WARRANT] This proves that adapting rather than merely resisting allowed Japan to protect its independence, because a modernized Japan was strong enough to avoid being colonized. [DATA] Japan then went further, defeating China in 1895 and Russia in 1905. [WARRANT] This demonstrates the most striking difference in results: while India and China became victims of imperialism, Japan's response turned it into an imperial power of its own — showing that how a society responded to imperialism largely determined whether it was conquered or rose to dominate."
+ }
+];
+
+/* =========================================================================
+   ENGINE
+   ========================================================================= */
+const $ = s => document.querySelector(s);
+const store = {
+  get(k,d){ try{return JSON.parse(localStorage.getItem("bwh_"+k)) ?? d;}catch(e){return d;} },
+  set(k,v){ localStorage.setItem("bwh_"+k, JSON.stringify(v)); }
+};
+const DAY = 86400000;
+const now = () => Date.now();
+function daysUntil(dstr){ const e=new Date(dstr+"T09:00:00"); return Math.ceil((e-new Date())/DAY); }
+
+/* ---- navigation ---- */
+function go(t){
+  document.querySelectorAll("section").forEach(s=>s.classList.toggle("active", s.id===t));
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on", b.dataset.t===t));
+  window.scrollTo(0,0);
+  if(t==="cards") renderDecks();
+  if(t==="quiz") renderQuizPick();
+  if(t==="essay") renderEssayHome();
+  if(t==="ref") renderRef();
+  if(t==="home") renderHome();
+}
+
+/* ---- dashboard ---- */
+function renderHome(){
+  const d = daysUntil(META.examDate);
+  const cd = d>1 ? d+" days" : (d===1?"1 day":(d===0?"TODAY":"past"));
+  $("#countdown").innerHTML = META.examLabel+": Fri June 26 · <b>"+cd+"</b> to go";
+  const plan = [
+    ["Today","Drill flashcards (Cram mode) for your 2 weakest lessons + write 1 thesis for each essay topic."],
+    ["2–3 days out","Mock-final quiz; review every question you miss. Practice CDW body paragraphs out loud."],
+    ["Day before","Full timed CDW essay on one topic. Re-quiz only the cards you keep missing."],
+    ["Exam morning","60-sec warm-up: say a thesis + the CDW structure from memory. Charge the iPad. Go."]
+  ];
+  $("#plan").innerHTML = plan.map(p=>'<div class="kv"><b>'+p[0]+":</b> "+p[1]+"</div>").join("");
+  // stats
+  const cs = store.get("cards",{});
+  let reviewed=0, due=0;
+  ALLCARDS.forEach(c=>{ const st=cs[c.id]; if(st){reviewed++; if((st.due||0)<=now()) due++;} else due++; });
+  $("#stCards").textContent = reviewed;
+  $("#stDue").textContent = due;
+  const qh = store.get("quiz",{seen:0,correct:0});
+  $("#stAcc").textContent = qh.seen? Math.round(qh.correct/qh.seen*100)+"%" : "—";
+}
+function resetAll(){
+  if(confirm("Reset all flashcard schedules and quiz stats? (Your study materials stay.)")){
+    localStorage.removeItem("bwh_cards"); localStorage.removeItem("bwh_quiz"); renderHome(); alert("Progress reset.");
+  }
+}
+
+/* ---- build flat card list ---- */
+const ALLCARDS = [];
+LESSONS.forEach(L => L.cards.forEach((c,i)=> ALLCARDS.push({id:L.id+"_"+i, lesson:L.id, lessonTitle:L.title, f:c.f, b:c.b})));
+
+/* ---- flashcards w/ SM-2 spaced repetition ---- */
+let deck="ALL", queue=[], qi=0, flipped=false;
+function renderDecks(){
+  const cs = store.get("cards",{});
+  const decks = [["ALL","All lessons"], ["DUE","Due now"]].concat(LESSONS.map(L=>[L.id, L.title]));
+  $("#deckpick").innerHTML = decks.map(d=>{
+    let n;
+    if(d[0]==="ALL") n=ALLCARDS.length;
+    else if(d[0]==="DUE") n=ALLCARDS.filter(c=>{const s=cs[c.id]; return !s || (s.due||0)<=now();}).length;
+    else n=ALLCARDS.filter(c=>c.lesson===d[0]).length;
+    return '<button class="chip'+(deck===d[0]?" on":"")+'" onclick="pickDeck(\''+d[0]+'\')">'+d[1]+" ("+n+")</button>";
+  }).join("");
+  buildQueue(); showCard();
+}
+function pickDeck(d){ deck=d; renderDecks(); }
+function buildQueue(){
+  const cs = store.get("cards",{});
+  const cram = $("#cram") && $("#cram").checked;
+  let list = ALLCARDS.filter(c => deck==="ALL"||deck==="DUE" ? true : c.lesson===deck);
+  if(deck==="DUE" || !cram) list = list.filter(c=>{const s=cs[c.id]; return !s || (s.due||0)<=now();});
+  // shuffle
+  for(let i=list.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[list[i],list[j]]=[list[j],list[i]];}
+  queue=list; qi=0; flipped=false;
+}
+function showCard(){
+  const stage=$("#fcStage");
+  if(!queue.length){
+    stage.innerHTML='<div class="card" style="text-align:center"><h3>🎉 Nothing due in this deck!</h3><p class="muted">Turn on <b>Cram mode</b> above to drill anyway, or pick another deck. Right before the exam, cram everything.</p></div>';
+    return;
+  }
+  if(qi>=queue.length){
+    stage.innerHTML='<div class="card" style="text-align:center"><h3>✅ Deck complete — nice work.</h3><p class="muted">'+queue.length+' cards reviewed.</p><button class="btn block" onclick="buildQueue();showCard();">Go again</button></div>';
+    return;
+  }
+  const c=queue[qi];
+  const pct=Math.round(qi/queue.length*100);
+  stage.innerHTML =
+   '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
+   '<div class="muted" style="text-align:center;margin-bottom:6px">'+(qi+1)+" / "+queue.length+" · "+c.lessonTitle+'</div>'+
+   '<div class="card fc" onclick="flip()"><div class="side">'+
+     '<span class="lbl">'+(flipped?"ANSWER":"PROMPT — answer first, then tap")+'</span>'+
+     (flipped? c.b : c.f)+'</div></div>'+
+   (flipped?
+     '<div class="rate">'+
+       '<button class="r0" onclick="rate(0)">Again</button>'+
+       '<button class="r1" onclick="rate(3)">Hard</button>'+
+       '<button class="r2" onclick="rate(4)">Good</button>'+
+       '<button class="r3" onclick="rate(5)">Easy</button>'+
+     '</div>'
+     : '<button class="btn block" onclick="flip()">Flip card</button>');
+}
+function flip(){ flipped=!flipped; showCard(); }
+function rate(q){
+  const c=queue[qi];
+  const cs=store.get("cards",{});
+  let s=cs[c.id]||{ease:2.5,interval:0,reps:0};
+  if(q<3){ s.reps=0; s.interval=0; queue.push(c); } // failed → see again this session
+  else{
+    s.reps++;
+    if(s.reps===1) s.interval=1; else if(s.reps===2) s.interval=3; else s.interval=Math.round(s.interval*s.ease);
+    s.ease=Math.max(1.3, s.ease + (0.1-(5-q)*(0.08+(5-q)*0.02)));
+  }
+  s.due=now()+Math.max(0,s.interval)*DAY;
+  cs[c.id]=s; store.set("cards",cs);
+  qi++; flipped=false; showCard();
+}
+
+/* ---- quizzes ---- */
+let quiz=[], quizIx=0, quizScore=0, answered=false, quizName="";
+function renderQuizPick(){
+  $("#quizStage").innerHTML="";
+  const counts={}; MCQ.forEach(m=>counts[m.l]=(counts[m.l]||0)+1);
+  let html='<p class="muted">Pick a set. After each question you get the answer + why. The mock final mixes everything, like the real test.</p>';
+  html+='<button class="btn block" onclick="startQuiz(\'FINAL\')">🎯 Mock Final — 66 mixed questions</button>';
+  html+='<div class="grid">';
+  LESSONS.forEach(L=>{ if(counts[L.id]) html+='<div class="tile" onclick="startQuiz(\''+L.id+'\')"><div class="t">'+L.title+'</div><div class="s">'+counts[L.id]+' questions</div></div>'; });
+  html+='</div>';
+  $("#quizPick").innerHTML=html;
+}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function startQuiz(which){
+  if(which==="FINAL"){ quiz=shuffle(MCQ).slice(0,Math.min(66,MCQ.length)); quizName="Mock Final"; }
+  else{ quiz=shuffle(MCQ.filter(m=>m.l===which)); quizName=(LESSONS.find(L=>L.id===which)||{}).title||which; }
+  // shuffle choices per question, track correct index
+  quiz=quiz.map(m=>{
+    const order=shuffle(m.c.map((_,i)=>i));
+    return {q:m.q, choices:order.map(i=>m.c[i]), a:order.indexOf(m.a), why:m.why};
+  });
+  quizIx=0; quizScore=0; answered=false;
+  $("#quizPick").style.display="none"; showQuiz();
+}
+function showQuiz(){
+  const st=$("#quizStage");
+  if(quizIx>=quiz.length){
+    const pct=Math.round(quizScore/quiz.length*100);
+    const qh=store.get("quiz",{seen:0,correct:0}); qh.seen+=quiz.length; qh.correct+=quizScore; store.set("quiz",qh);
+    st.innerHTML='<div class="card" style="text-align:center"><h2>'+quizName+' done</h2>'+
+      '<div class="big">'+quizScore+" / "+quiz.length+'</div><div class="muted">'+pct+'% correct</div>'+
+      '<p class="muted">'+(pct>=85?"🔥 Exam-ready on this set.":pct>=70?"Solid — review the ones you missed.":"Keep going — drill the flashcards for this topic, then retry.")+'</p>'+
+      '<button class="btn block" onclick="backToQuizPick()">Pick another set</button></div>';
+    return;
+  }
+  const it=quiz[quizIx];
+  let html='<div class="qmeta"><span>'+quizName+'</span><span>'+(quizIx+1)+" / "+quiz.length+' · Score '+quizScore+'</span></div>';
+  html+='<div class="card"><p style="font-weight:600;font-size:16px">'+it.q+'</p><div id="choices">';
+  it.choices.forEach((ch,i)=> html+='<button class="choice" onclick="answer('+i+')">'+ch+'</button>');
+  html+='</div><div id="exp"></div></div>';
+  st.innerHTML=html;
+}
+function answer(i){
+  if(answered) return; answered=true;
+  const it=quiz[quizIx];
+  const btns=document.querySelectorAll("#choices .choice");
+  btns.forEach((b,ix)=>{ b.classList.add("dim"); if(ix===it.a)b.classList.add("correct"); if(ix===i&&i!==it.a)b.classList.add("wrong"); });
+  if(i===it.a) quizScore++;
+  $("#exp").innerHTML='<div class="explain"><b>'+(i===it.a?"✅ Correct.":"❌ Not quite.")+'</b> '+it.why+'</div>'+
+    '<button class="btn block" onclick="nextQ()">'+(quizIx+1>=quiz.length?"See results":"Next question")+'</button>';
+}
+function nextQ(){ quizIx++; answered=false; showQuiz(); }
+function backToQuizPick(){ $("#quizPick").style.display=""; $("#quizStage").innerHTML=""; renderQuizPick(); }
+
+/* ---- essays ---- */
+function renderEssayHome(){
+  $("#essayStage").innerHTML="";
+  let html='<div class="card"><span class="pill alt">Read first</span><h3 style="margin-top:8px">How the essay is scored (36 pts)</h3>'+
+    '<p>'+CDW_GUIDE+'</p>'+
+    '<div class="integrity">These 4 topics are the ones your teacher listed as possible. Learn the <b>structure</b> from the models, then practice writing your OWN from memory — that is exactly what you do on the locked iPad.</div></div>';
+  html+='<p class="muted">Tap a topic to study it:</p>';
+  ESSAYS.forEach(e=> html+='<div class="tile" style="margin:8px 0" onclick="openEssay(\''+e.id+'\')"><div class="t">'+e.title+'</div><div class="s">Prompt · what graders want · data bank · model essay · practice</div></div>');
+  $("#essayHome").innerHTML=html;
+}
+function openEssay(id){
+  const e=ESSAYS.find(x=>x.id===id);
+  $("#essayHome").innerHTML='<button class="btn sec" onclick="renderEssayHome()">‹ All topics</button>';
+  let html='<div class="card"><span class="pill">Prompt</span><p style="font-weight:600;margin-top:8px">'+e.prompt+'</p></div>';
+  html+='<details open><summary>🎯 What the graders want</summary><div class="body"><p>'+e.wants+'</p>'+
+        '<p class="muted"><b>Compare/contrast trap:</b> '+e.traps+'</p></div></details>';
+  html+='<details><summary>🧱 Data bank (facts to use)</summary><div class="body"><ul class="tight">'+
+        e.databank.map(d=>"<li>"+d+"</li>").join("")+'</ul></div></details>';
+  html+='<details><summary>📝 Model essay (study the structure)</summary><div class="body">'+
+        '<div class="integrity">This is an EXAMPLE to learn from — never submit it. On the exam you write your own from memory.</div>'+
+        '<p style="font-size:14px">Color key: <span class="cdw c-claim">CLAIM</span> <span class="cdw c-data">DATA</span> <span class="cdw c-warr">WARRANT</span></p>'+
+        '<div style="font-size:15px;line-height:1.6">'+fmtModel(e.model)+'</div></div></details>';
+  html+='<details><summary>✍️ Practice it yourself</summary><div class="body">'+
+        '<p class="muted">Write a thesis + 2 CDW body paragraphs from memory. Then check yourself against the rubric below. (Nothing here is graded by AI — it is your reps.)</p>'+
+        '<textarea id="essayDraft" placeholder="Your thesis...\n\nClaim 1...\nData... Warrant...\nData... Warrant...\n\nClaim 2...\nData... Warrant...\nData... Warrant..."></textarea>'+
+        '<div id="wordc" class="muted" style="margin:6px 0">0 words</div>'+
+        '<h3>Self-check rubric</h3>'+
+        RUBRIC.map((r,i)=>'<label class="check"><input type="checkbox"><span>'+r+'</span></label>').join("")+
+        '<button class="btn sec block" onclick="saveDraft(\''+e.id+'\')">Save my draft on this device</button>'+
+        '<button class="btn sec block" onclick="loadDraft(\''+e.id+'\')">Load my saved draft</button>'+
+        '</div></details>';
+  $("#essayStage").innerHTML=html;
+  const ta=$("#essayDraft");
+  if(ta){ ta.addEventListener("input",()=>{ const w=ta.value.trim().split(/\s+/).filter(Boolean).length; $("#wordc").textContent=w+" words"; }); }
+  window.scrollTo(0,0);
+}
+function fmtModel(t){
+  return t.split("\n\n").map(p=>{
+    p=p.replace(/\[THESIS\]/g,'<span class="cdw" style="background:#223853">THESIS</span> ')
+       .replace(/\[CLAIM\]/g,'<span class="cdw c-claim">CLAIM</span> ')
+       .replace(/\[DATA\]/g,'<span class="cdw c-data">DATA</span> ')
+       .replace(/\[WARRANT\]/g,'<span class="cdw c-warr">WARRANT</span> ');
+    return "<p>"+p+"</p>";
+  }).join("");
+}
+function saveDraft(id){ const ta=$("#essayDraft"); if(ta){store.set("draft_"+id, ta.value); alert("Saved on this device.");} }
+function loadDraft(id){ const ta=$("#essayDraft"); const v=store.get("draft_"+id,""); if(ta){ta.value=v; ta.dispatchEvent(new Event("input"));} }
+
+/* ---- reference ---- */
+function renderRef(){
+  const term=($("#refSearch").value||"").toLowerCase();
+  let html="";
+  LESSONS.forEach(L=>{
+    const cards=L.cards.filter(c=> !term || (c.f+" "+c.b).toLowerCase().includes(term));
+    if(!cards.length) return;
+    html+='<details'+(term?" open":"")+'><summary>'+L.title+' <span class="muted">· '+L.tag+'</span></summary><div class="body">';
+    html+='<p class="muted">'+L.blurb+'</p>';
+    cards.forEach(c=> html+='<div class="kv"><b>'+c.f.replace(/\?$/,"")+'</b><br>'+c.b+'</div><hr>');
+    html+='</div></details>';
+  });
+  $("#refStage").innerHTML = html || '<p class="muted">No matches. Try another word.</p>';
+}
+
+/* ---- init ---- */
+document.querySelector("#cram") && document.querySelector("#cram").addEventListener("change", ()=>{ buildQueue(); showCard(); });
+renderHome();
+</script>
+</body>
+</html>
