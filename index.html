@@ -2006,6 +2006,7 @@ const RUBRIC = [
 const ESSAYS = [
  {
   "id": "E1",
+  "video": "video/E1.mp4",
   "title": "European Exploration & the Americas",
   "prompt": "Describe the various impacts of European exploration and settlement of the Americas, and compare/contrast the impacts on the 'New World' (the Americas) with the impacts on the 'Old World' (Africa, Europe, and Asia).",
   "wants": "They want you to show that exploration changed BOTH worlds — but in very different ways — and to explain those differences conceptually (not just list events). Hit demographics (disease), labor (the slave trade), economy (mercantilism, new wealth/crops), and culture.",
@@ -2028,6 +2029,7 @@ const ESSAYS = [
  },
  {
   "id": "E2",
+  "video": "video/E2.mp4",
   "title": "Comparing the American, French & Latin American Revolutions",
   "prompt": "Compare and contrast the American, French, and Latin American Revolutions. Consider the causes and effects of each.",
   "wants": "Show what the three revolutions had in COMMON (Enlightenment ideas, desire for self-rule) AND how they DIFFERED in cause and outcome. Pick conceptual similarities/differences, not just 'different countries.'",
@@ -2379,6 +2381,7 @@ function openEssay(id){
   const e=ESSAYS.find(x=>x.id===id);
   $("#essayHome").innerHTML='<button class="btn sec" onclick="renderEssayHome()">‹ All topics</button>';
   let html='<div class="card"><span class="pill">Prompt</span><p style="font-weight:600;margin-top:8px">'+e.prompt+'</p></div>';
+  if(e.video){ html+='<div class="card"><span class="pill">▶ Overview video</span><video controls preload="metadata" playsinline style="width:100%;border-radius:10px;margin-top:8px;background:#000" src="'+e.video+'"></video><p class="muted" style="font-size:13px;margin-top:6px">A ~1-minute cinematic overview of what this essay must prove — a learning aid, never for submission.</p></div>'; }
   html+='<details open><summary>🎯 What the graders want</summary><div class="body"><p>'+e.wants+'</p>'+
         '<p class="muted"><b>Compare/contrast trap:</b> '+e.traps+'</p></div></details>';
   html+='<details><summary>🧱 Data bank (facts to use)</summary><div class="body"><ul class="tight">'+
